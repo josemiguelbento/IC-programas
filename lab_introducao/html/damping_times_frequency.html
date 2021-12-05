@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Simulation of a Linear System</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-12-05"><meta name="DC.source" content="main.m"><style type="text/css">
+      --><title>Simulation of a Linear System</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-12-05"><meta name="DC.source" content="damping_times_frequency.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -70,22 +70,27 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
   </style></head><body><div class="content"><h1>Simulation of a Linear System</h1><!--introduction--><p>The title kinda says it all</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Initializing this bad boy</a></li><li><a href="#2">Setting the second-order LTI system parameters</a></li><li><a href="#3">Running the simulation</a></li><li><a href="#5">Plotting some dope-ass graphs</a></li><li><a href="#7">Gettin'em legends on point</a></li><li><a href="#8">Author notes</a></li></ul></div><h2 id="1">Initializing this bad boy</h2><pre class="codeinput">close <span class="string">all</span>
 clear
 clc
-</pre><h2 id="2">Setting the second-order LTI system parameters</h2><p>We can change the parameters of the simulation here instead of having to do it on simulink.</p><pre class="codeinput">xi = 0.4;
-omega_n = 2*pi/5; <span class="comment">%rad/s</span>
-StepSizes = [0.5; 0.1; 0.01; 1e-3];
+</pre><h2 id="2">Setting the second-order LTI system parameters</h2><p>We can change the parameters of the simulation here instead of having to do it on simulink.</p><pre class="codeinput">product = 0.5;
+xis = [0.1, 0.2, 0.5, 0.9, 1];
+omega_ns = 0.5 ./xis; <span class="comment">%rad/s</span>
+StepSizes = 0.01;
+finaltime = 20;
 </pre><h2 id="3">Running the simulation</h2><p>We cycle through all the step sizes specified in the StepSizes vector</p><pre class="codeinput">figure(1)
-<span class="keyword">for</span> i = 1:length(StepSizes)
-</pre><pre class="codeinput">    simout = sim(<span class="string">'dif_eq'</span>,<span class="string">'FixedStep'</span>,num2str(StepSizes(i))); <span class="comment">%Question: does it need to be in the same folder?</span>
+<span class="keyword">for</span> i = 1:length(xis)
+</pre><pre class="codeinput">    xi = xis(i);
+    omega_n = omega_ns(i);
+    simout = sim(<span class="string">'dif_eq'</span>,<span class="string">'StopTime'</span>,num2str(finaltime),<span class="string">'FixedStep'</span>,num2str(StepSizes)); <span class="comment">%Question: does it need to be in the same folder?</span>
 </pre><h2 id="5">Plotting some dope-ass graphs</h2><pre class="codeinput">plot(simout.y.time, simout.y.signals.values);
 hold <span class="string">on</span>
-</pre><img vspace="5" hspace="5" src="main_01.png" alt=""> <img vspace="5" hspace="5" src="main_02.png" alt=""> <img vspace="5" hspace="5" src="main_03.png" alt=""> <img vspace="5" hspace="5" src="main_04.png" alt=""> <pre class="codeinput"><span class="keyword">end</span>
-</pre><h2 id="7">Gettin'em legends on point</h2><pre class="codeinput">legend(strcat(<span class="string">'StepSize = '</span>, num2str(StepSizes(1))))
+</pre><img vspace="5" hspace="5" src="damping_times_frequency_01.png" alt=""> <img vspace="5" hspace="5" src="damping_times_frequency_02.png" alt=""> <img vspace="5" hspace="5" src="damping_times_frequency_03.png" alt=""> <img vspace="5" hspace="5" src="damping_times_frequency_04.png" alt=""> <img vspace="5" hspace="5" src="damping_times_frequency_05.png" alt=""> <pre class="codeinput"><span class="keyword">end</span>
+</pre><h2 id="7">Gettin'em legends on point</h2><pre class="codeinput">leg = legend(strcat(<span class="string">'xi = '</span>, num2str(xis(1)),<span class="string">' omega_n = '</span>, num2str(omega_ns(1))),<span class="string">'Location'</span>,<span class="string">'southeast'</span>);
+title(leg,strcat(<span class="string">'xi times omega_n ='</span>, num2str(product)))
 
-<span class="keyword">for</span> j = 2:length(StepSizes)
+<span class="keyword">for</span> j = 2:length(xis)
 <span class="comment">%first get the legend handles</span>
 old_legend=findobj(gcf, <span class="string">'Type'</span>, <span class="string">'Legend'</span>);
 <span class="comment">%then append the legend with new entry</span>
-legend([old_legend.String,strcat(<span class="string">'StepSize = '</span>, num2str(StepSizes(j)))])
+legend([old_legend.String,strcat(<span class="string">'xi = '</span>, num2str(xis(j)),<span class="string">' omega_n = '</span>, num2str(omega_ns(j)))])
 <span class="keyword">end</span>
 
 xlabel(<span class="string">'t (s)'</span>);
@@ -93,7 +98,7 @@ ylabel(<span class="string">'y'</span>);
 grid <span class="string">on</span>;
 box <span class="string">on</span>;
 title(<span class="string">'Example step response of a second-order LTI system'</span>);
-</pre><img vspace="5" hspace="5" src="main_05.png" alt=""> <h2 id="8">Author notes</h2><p>Apparentely this is used to model solar panels deflection and shit.</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="damping_times_frequency_06.png" alt=""> <h2 id="8">Author notes</h2><p>The time it takes for every conbination to stabilize is the same.</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Simulation of a Linear System
 % The title kinda says it all
@@ -107,28 +112,32 @@ clc
 %% Setting the second-order LTI system parameters
 % We can change the parameters of the simulation here instead of 
 % having to do it on simulink.
-xi = 0.4;
-omega_n = 2*pi/5; %rad/s
-StepSizes = [0.5; 0.1; 0.01; 1e-3];
-
+product = 0.5;
+xis = [0.1, 0.2, 0.5, 0.9, 1];
+omega_ns = 0.5 ./xis; %rad/s
+StepSizes = 0.01;
+finaltime = 20;
 %% Running the simulation
 % We cycle through all the step sizes specified in the StepSizes vector
 figure(1)
-for i = 1:length(StepSizes)
-    simout = sim('dif_eq','FixedStep',num2str(StepSizes(i))); %Question: does it need to be in the same folder?
+for i = 1:length(xis)
+    xi = xis(i);
+    omega_n = omega_ns(i);
+    simout = sim('dif_eq','StopTime',num2str(finaltime),'FixedStep',num2str(StepSizes)); %Question: does it need to be in the same folder?
 
 %% Plotting some dope-ass graphs
 plot(simout.y.time, simout.y.signals.values);
 hold on
 end
 %% Gettin'em legends on point
-legend(strcat('StepSize = ', num2str(StepSizes(1))))
+leg = legend(strcat('xi = ', num2str(xis(1)),' omega_n = ', num2str(omega_ns(1))),'Location','southeast');
+title(leg,strcat('xi times omega_n =', num2str(product)))
 
-for j = 2:length(StepSizes)
+for j = 2:length(xis)
 %first get the legend handles
 old_legend=findobj(gcf, 'Type', 'Legend');
 %then append the legend with new entry
-legend([old_legend.String,strcat('StepSize = ', num2str(StepSizes(j)))])
+legend([old_legend.String,strcat('xi = ', num2str(xis(j)),' omega_n = ', num2str(omega_ns(j)))])
 end
 
 xlabel('t (s)');
@@ -138,7 +147,7 @@ box on;
 title('Example step response of a second-order LTI system');
 
 %% Author notes
-% Apparentely this is used to model solar panels deflection and shit.
+% The time it takes for every conbination to stabilize is the same.
 
 
 ##### SOURCE END #####
