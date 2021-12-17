@@ -39,6 +39,7 @@ plot(simout.get('omega').time, simout.get('omega').signals.values/2/pi*60);
 xlabel('time (s)')
 ylabel('w (rpm)')
 legend(legendcell,'Location','southwest');
+title("U with non-linear")
 
 % Altitude em função do tempo para deiferentes inputs de u
 figure(2)
@@ -46,7 +47,7 @@ plot(simout.get('z').time, simout.get('z').signals.values);
 xlabel('time (s)')
 ylabel('z (m)')
 legend(legendcell,'Location','southwest');
-
+title("Z with non-linear")
 
 %% Running the linear simulation
 % We cycle through all the step sizes specified in the StepSizes vector
@@ -73,9 +74,11 @@ for i = 1:length(u)
 end
 
 figure(3)
+title("U with Laplace transform")
 legend(legendcell_lin,'Location','southwest');
 
 figure(4)
+title("Z with Laplace transform")
 legend(legendcell_lin,'Location','southwest');
 
 
