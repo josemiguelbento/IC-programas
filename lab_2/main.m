@@ -23,62 +23,47 @@ u_rpm = [100,1000,5000];
 u = u_rpm.*(2*pi/60); %rad/s
 delta_u = u-u_0;
 
-%% Running the non_linear simulation
-% We cycle through all the step sizes specified in the StepSizes vector
-simout = sim('non_linear','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
-
-%% Gettin'em legends on point
-legendcell = {};
-for i = 1:length(u)
-    legendcell = [legendcell, cellstr(strcat('u = ', num2str(u_rpm(i))))];
-end
-%% Plotting some dope-ass graphs
-% Velocidade angular em função do tempo em resposta a alteração de u
-figure(1)
-plot(simout.get('omega').time, simout.get('omega').signals.values/2/pi*60);
-xlabel('time (s)')
-ylabel('w (rpm)')
-legend(legendcell,'Location','southwest');
-title("U with non-linear")
-
-% Altitude em função do tempo para deiferentes inputs de u
-figure(2)
-plot(simout.get('z').time, simout.get('z').signals.values);
-xlabel('time (s)')
-ylabel('z (m)')
-legend(legendcell,'Location','southwest');
-title("Z with non-linear")
-
-%% Running the linear simulation
+%% Running the complete simulation
 % We cycle through all the step sizes specified in the StepSizes vector
 for i = 1:length(u)
-    simout_lin = sim('laplace_transform','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
+    simout_tot = sim('total','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
     %% Plotting some dope-ass graphs
 
-    figure(3)
-    plot(simout_lin.get('omega_lin').time, simout_lin.get('omega_lin').signals.values/2/pi*60);
+    figure(4*(i-1)+1)
+    plot(simout_tot.get('omega_lin').time, simout_tot.get('omega_lin').signals.values/2/pi*60);
+    hold on
+    plot(simout_tot.get('omega').time, simout_tot.get('omega').signals.values/2/pi*60);
     xlabel('time (s)')
     ylabel('w (rpm)')
-    hold on
+    title(strcat("Angular velocity ", "u = ", num2str(u_rpm(i)), " rpm"))
+    legend('lin','non lin','Location','southwest');
     
-    figure(4)
-    plot(simout_lin.get('z_lin').time, simout_lin.get('z_lin').signals.values);
+    
+    figure(4*(i-1)+2)
+    plot(simout_tot.get('z_lin').time, simout_tot.get('z_lin').signals.values);
+    hold on
+    plot(simout_tot.get('z').time, simout_tot.get('z').signals.values);
     xlabel('time (s)')
     ylabel('z (m)')
+    title(strcat("Altitude ", "u = ", num2str(u_rpm(i)), " rpm"))
+    legend('lin','non lin','Location','southwest');
+    
+    figure(4*(i-1)+3)
+    plot(simout_tot.get('omega_lin').time, simout_tot.get('z_pt_lin').signals.values);
     hold on
+    plot(simout_tot.get('omega').time, simout_tot.get('z_pt').signals.values);
+    xlabel('time (s)')
+    ylabel('Velocidade (m/s)')
+    title(strcat("Velocity ", "u = ", num2str(u_rpm(i)), " rpm"))
+    legend('lin','non lin','Location','southwest');
+    
+    figure(4*(i-1)+4)
+    plot(simout_tot.get('omega_lin').time, simout_tot.get('z_2pt_lin').signals.values);
+    hold on
+    plot(simout_tot.get('omega').time, simout_tot.get('z_2pt').signals.values);
+    xlabel('time (s)')
+    ylabel('Aceleração (m/s^2)')
+    title(strcat("Acceleration ", "u = ", num2str(u_rpm(i)), " rpm"))
+    legend('lin','non lin','Location','southwest');
+    
 end
-%% Gettin'em legends on point
-legendcell_lin = {};
-for i = 1:length(u)
-    legendcell_lin = [legendcell_lin, cellstr(strcat('u = ', num2str(u_rpm(i))))];
-end
-
-figure(3)
-title("U with Laplace transform")
-legend(legendcell_lin,'Location','southwest');
-
-figure(4)
-title("Z with Laplace transform")
-legend(legendcell_lin,'Location','southwest');
-
-
