@@ -19,7 +19,8 @@ Z0 = 2; %m
 
 omega_0 = sqrt(G*M/Kt); %rad/s
 u_0 = omega_0;
-u_rpm = [100,1000,5000];
+d_u_rpm = [100,1000,5000];
+u_rpm = u_0/(2*pi/60) + d_u_rpm;
 u = u_rpm.*(2*pi/60); %rad/s
 delta_u = u-u_0;
 
