@@ -1,0 +1,245 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Simplified model for altitude control of a drone</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-12-22"><meta name="DC.source" content="main.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Simplified model for altitude control of a drone</h1><!--introduction--><p>The title kinda says it all</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Initializing this bad boy</a></li><li><a href="#2">Setting the system parameters</a></li><li><a href="#3">Defining Transfer Function for root locus</a></li><li><a href="#4">Running the complete simulation</a></li><li><a href="#6">Plotting some dope-ass graphs</a></li></ul></div><h2 id="1">Initializing this bad boy</h2><pre class="codeinput">close <span class="string">all</span>
+clear
+clc
+</pre><h2 id="2">Setting the system parameters</h2><p>Parameters for running the simulation</p><pre class="codeinput">finaltime = 200;
+StepSize = 0.01;
+
+<span class="comment">% Problem parameters</span>
+initial_step = 1; <span class="comment">%s</span>
+M = 1; <span class="comment">%kg</span>
+G = 9.8; <span class="comment">%m/s^2</span>
+Kt = 3.575e-5; <span class="comment">%N/(rad/s)^2</span>
+Z0 = 2; <span class="comment">%m</span>
+
+Kp = 0.5;
+Kd = 1;
+
+omega_0 = sqrt(G*M/Kt); <span class="comment">%rad/s</span>
+u_0 = omega_0;
+
+dZr = 2;
+</pre><h2 id="3">Defining Transfer Function for root locus</h2><p>Proportional</p><pre class="codeinput">s = tf(<span class="string">'s'</span>);
+K_prop = 600*Kp*Kt*omega_0/M;
+g_prop = 1/(s^2*(s+300));
+
+figure(5)
+rlocus(g_prop);
+
+<span class="comment">% Proportional + Derivative</span>
+K_prop_der = 600*Kd*Kt*omega_0/M;
+z = Kp/Kd;
+g_prop_der = (s+z)/(s^2*(s+300));
+figure(6)
+rlocus(g_prop_der);
+</pre><img vspace="5" hspace="5" src="main_01.png" alt=""> <img vspace="5" hspace="5" src="main_02.png" alt=""> <h2 id="4">Running the complete simulation</h2><p>We cycle through all the step sizes specified in the StepSizes vector</p><pre class="codeinput"><span class="keyword">for</span> i = 1:length(dZr)
+</pre><pre class="codeinput">    simout_tot = sim(<span class="string">'total'</span>,<span class="string">'StopTime'</span>,num2str(finaltime),<span class="string">'FixedStep'</span>,num2str(StepSize));
+</pre><pre class="codeoutput">Warning: Solver is encountering difficulty in simulating model '&lt;a
+href="matlab:open_system ('total')"&gt;total&lt;/a&gt;' at time 1.0000000000000036.
+Simulink will continue to simulate with warnings. Please check the model for
+errors. 
+Warning: Solver was unable to reduce the step size without violating minimum
+step size of 3.55271e-15 for 1 consecutive times at time 1.  Solver will
+continue simulation with the step size restricted to 3.55271e-15 and using an
+effective relative error tolerance of 0.0135238, which is greater than the
+specified relative error tolerance of 0.001. This usually may be caused by the
+high stiffness of the system. Please check the system or increase the solver &lt;a
+href="matlab:configset.internal.open('total','MaxConsecutiveMinStep');"&gt;Number
+of consecutive min steps&lt;/a&gt; violation parameter. 
+</pre><h2 id="6">Plotting some dope-ass graphs</h2><pre class="codeinput">    figure(4*(i-1)+1)
+    plot(simout_tot.get(<span class="string">'omega_p'</span>).time, simout_tot.get(<span class="string">'omega_p'</span>).signals.values/2/pi*60);
+    hold <span class="string">on</span>
+    plot(simout_tot.get(<span class="string">'omega_pd'</span>).time, simout_tot.get(<span class="string">'omega_pd'</span>).signals.values/2/pi*60);
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'w (rpm)'</span>)
+    title(strcat(<span class="string">"Angular velocity "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m"</span>))
+    legend(<span class="string">'prop'</span>,<span class="string">'dif prop'</span>,<span class="string">'Location'</span>,<span class="string">'southwest'</span>);
+
+
+    figure(4*(i-1)+2)
+    plot(simout_tot.get(<span class="string">'z_p'</span>).time, simout_tot.get(<span class="string">'z_p'</span>).signals.values);
+    hold <span class="string">on</span>
+    plot(simout_tot.get(<span class="string">'z_pd'</span>).time, simout_tot.get(<span class="string">'z_pd'</span>).signals.values);
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'z (m)'</span>)
+    title(strcat(<span class="string">"Altitude "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m"</span>))
+    legend(<span class="string">'prop'</span>,<span class="string">'dif prop'</span>,<span class="string">'Location'</span>,<span class="string">'southwest'</span>);
+
+    figure(4*(i-1)+3)
+    plot(simout_tot.get(<span class="string">'omega_p'</span>).time, simout_tot.get(<span class="string">'z_pt_p'</span>).signals.values);
+    hold <span class="string">on</span>
+    plot(simout_tot.get(<span class="string">'omega_pd'</span>).time, simout_tot.get(<span class="string">'z_pt_pd'</span>).signals.values);
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'Velocidade (m/s)'</span>)
+    title(strcat(<span class="string">"Velocity "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m"</span>))
+    legend(<span class="string">'prop'</span>,<span class="string">'dif prop'</span>,<span class="string">'Location'</span>,<span class="string">'southwest'</span>);
+
+    figure(4*(i-1)+4)
+    plot(simout_tot.get(<span class="string">'omega_p'</span>).time, simout_tot.get(<span class="string">'z_2pt_p'</span>).signals.values);
+    hold <span class="string">on</span>
+    plot(simout_tot.get(<span class="string">'omega_pd'</span>).time, simout_tot.get(<span class="string">'z_2pt_pd'</span>).signals.values);
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'Acelera&ccedil;&atilde;o (m/s^2)'</span>)
+    title(strcat(<span class="string">"Acceleration "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m"</span>))
+    legend(<span class="string">'prop'</span>,<span class="string">'dif prop'</span>,<span class="string">'Location'</span>,<span class="string">'southwest'</span>);
+</pre><img vspace="5" hspace="5" src="main_03.png" alt=""> <img vspace="5" hspace="5" src="main_04.png" alt=""> <img vspace="5" hspace="5" src="main_05.png" alt=""> <img vspace="5" hspace="5" src="main_06.png" alt=""> <img vspace="5" hspace="5" src="main_07.png" alt=""> <pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Simplified model for altitude control of a drone
+% The title kinda says it all
+%% Initializing this bad boy
+close all
+clear
+clc
+
+%% Setting the system parameters
+% Parameters for running the simulation
+finaltime = 200;
+StepSize = 0.01;
+
+% Problem parameters
+initial_step = 1; %s
+M = 1; %kg
+G = 9.8; %m/s^2
+Kt = 3.575e-5; %N/(rad/s)^2
+Z0 = 2; %m
+
+Kp = 0.5;
+Kd = 1;
+
+omega_0 = sqrt(G*M/Kt); %rad/s
+u_0 = omega_0;
+
+dZr = 2;
+
+%% Defining Transfer Function for root locus
+% Proportional
+s = tf('s');
+K_prop = 600*Kp*Kt*omega_0/M;
+g_prop = 1/(s^2*(s+300));
+
+figure(5)
+rlocus(g_prop);
+
+% Proportional + Derivative
+K_prop_der = 600*Kd*Kt*omega_0/M;
+z = Kp/Kd;
+g_prop_der = (s+z)/(s^2*(s+300));
+figure(6)
+rlocus(g_prop_der);
+
+%% Running the complete simulation
+% We cycle through all the step sizes specified in the StepSizes vector
+for i = 1:length(dZr)
+    simout_tot = sim('total','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
+    %% Plotting some dope-ass graphs
+
+    figure(4*(i-1)+1)
+    plot(simout_tot.get('omega_p').time, simout_tot.get('omega_p').signals.values/2/pi*60);
+    hold on
+    plot(simout_tot.get('omega_pd').time, simout_tot.get('omega_pd').signals.values/2/pi*60);
+    xlabel('time (s)')
+    ylabel('w (rpm)')
+    title(strcat("Angular velocity ", "dZr = ", num2str(dZr), " m"))
+    legend('prop','dif prop','Location','southwest');
+    
+    
+    figure(4*(i-1)+2)
+    plot(simout_tot.get('z_p').time, simout_tot.get('z_p').signals.values);
+    hold on
+    plot(simout_tot.get('z_pd').time, simout_tot.get('z_pd').signals.values);
+    xlabel('time (s)')
+    ylabel('z (m)')
+    title(strcat("Altitude ", "dZr = ", num2str(dZr), " m"))
+    legend('prop','dif prop','Location','southwest');
+    
+    figure(4*(i-1)+3)
+    plot(simout_tot.get('omega_p').time, simout_tot.get('z_pt_p').signals.values);
+    hold on
+    plot(simout_tot.get('omega_pd').time, simout_tot.get('z_pt_pd').signals.values);
+    xlabel('time (s)')
+    ylabel('Velocidade (m/s)')
+    title(strcat("Velocity ", "dZr = ", num2str(dZr), " m"))
+    legend('prop','dif prop','Location','southwest');
+    
+    figure(4*(i-1)+4)
+    plot(simout_tot.get('omega_p').time, simout_tot.get('z_2pt_p').signals.values);
+    hold on
+    plot(simout_tot.get('omega_pd').time, simout_tot.get('z_2pt_pd').signals.values);
+    xlabel('time (s)')
+    ylabel('Aceleração (m/s^2)')
+    title(strcat("Acceleration ", "dZr = ", num2str(dZr), " m"))
+    legend('prop','dif prop','Location','southwest');
+    
+end
+
+##### SOURCE END #####
+--></body></html>
