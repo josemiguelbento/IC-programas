@@ -1,6 +1,6 @@
 %% Simplified model for altitude control of a drone
 % The title kinda says it all
-%% Initializing this bad boy
+%% Initializing workspace
 close all
 clear
 clc
@@ -66,6 +66,10 @@ for j = 2:length(k_procura)
         break
     end
 end
+
+% Calculating Kp and Kd from the K found in the search for the double pole
+% (-2.01). The K for the pole mentioned is K = 1192.
+
 Kd_procura = k_alvo/(600*Kt*omega_0/M);
 Kp_procura = z_procura * Kd_procura;
 
@@ -73,7 +77,7 @@ Kp_procura = z_procura * Kd_procura;
 
 %% Running the complete simulation for the data from question 3.8
 % For this set of data, we exemplify the difference in response of the
-% systems analysed
+% systems analysed.
 
 Kp = Kd_procura;
 Kd = Kp_procura;
@@ -94,6 +98,8 @@ title('Root locus for z = 1, displaying the double pole');
 % Running the simulation for the previous data
 simout_tot = sim('total_lab3','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
 
+% Plotting the step response of the closed-loop linear system with the
+% proportional-derivative controller.
 figure(4+length(z_test))
 plot(simout_tot.get('z_p').time, simout_tot.get('z_p').signals.values);
 hold on
@@ -105,12 +111,28 @@ title({strcat("Altitude ", "dZr = ", num2str(dZr), " m"),...
     strcat('z = ', num2str(z), '   K_p = ', num2str(Kp), '   K_d = ', num2str(Kd))})
 legend('prop','dif prop','dif prop with tf','Location','southeast');
 
-
+% Here we plotted 3 different graphs to compare different controllers.
+%
+% As indicated in the legend, the blue one is originated in a simple
+% proportional controller. We can see it doesnt stabilize in the reference
+% value.
+% 
+% The red graph is the step response of a proportional derivative
+% controller, the simulation for which is done step by step using the
+% script from lab class 2. (in simulink it is the "proportional
+% derivative") block. This is the answer to question 3.8
+%
+% The final yellow graph is the step response of a proportional derivative
+% controller, the simulation for which is done with a single transfer
+% function (in simulink it is the "tf proportional derivative" block).
+% Note that this one differs from the second graph although theoretically
+% they should look alike.
 %% Effect of a varying z for contant K 3.9a
+% We now plot the step response keeping K constant but varying z.
 K_39a = 1192;
-z_39a = [0, 1, 10, 50];
+z_39a = [1];
 
-legendcell = {};
+legendcella = {};
 
 for i = 1:length(z_39a)
     z = z_39a(i);
@@ -122,16 +144,16 @@ for i = 1:length(z_39a)
     
     figure(5+length(z_test))
     %plot(simout_tot.get('z_p').time, simout_tot.get('z_p').signals.values);
-    %plot(simout_tot.get('z_pd').time, simout_tot.get('z_pd').signals.values);
-    plot(simout_tot.get('z_pdtf').time, simout_tot.get('z_pdtf').signals.values);
+    plot(simout_tot.get('z_pd').time, simout_tot.get('z_pd').signals.values);
+    %plot(simout_tot.get('z_pdtf').time, simout_tot.get('z_pdtf').signals.values);
     hold on
     xlabel('time (s)')
     ylabel('z (m)')
     title(strcat("Altitude ", "dZr = ", num2str(dZr), " m    For constant K = 1192"))
-    legendcell = [legendcell, cellstr(strcat('z = ', num2str(z)))];
+    legendcella = [legendcella, cellstr(strcat('z = ', num2str(z)))];
 end
-legend(legendcell,'Location','southeast');
-
+legend(legendcella,'Location','southeast');
+% We can see 
 
 %% Effect of a varying K for contant z 3.9b
 finaltime = 10;
@@ -151,8 +173,8 @@ for i = 1:length(K_39b)
     
     figure(6+length(z_test))
     %plot(simout_tot.get('z_p').time, simout_tot.get('z_p').signals.values);
-    %plot(simout_tot.get('z_pd').time, simout_tot.get('z_pd').signals.values);
-    plot(simout_tot.get('z_pdtf').time, simout_tot.get('z_pdtf').signals.values);
+    plot(simout_tot.get('z_pd').time, simout_tot.get('z_pd').signals.values);
+    %plot(simout_tot.get('z_pdtf').time, simout_tot.get('z_pdtf').signals.values);
     hold on
     xlabel('time (s)')
     ylabel('z (m)')
