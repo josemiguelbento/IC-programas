@@ -1,58 +1,80 @@
 %% Simplified model for altitude control of a drone
-% The title kinda says it all
 %% Initializing workspace
 close all
 clear
 clc
 
 %% Setting the system parameters
+
+
 % Parameters for running the simulation
 finaltime = 5;
 StepSize = 0.01;
 
 % Problem parameters
-initial_step = 1; %s
-M = 1; %kg
-G = 9.8; %m/s^2
-Kt = 3.575e-5; %N/(rad/s)^2
-Z0 = 2; %m
+initial_step = 1; % s
+M = 1; % kg
+G = 9.8; % m/s^2
+Kt = 3.575e-5; % N/(rad/s)^2
+Z0 = 2; % m
 
-
-omega_0 = sqrt(G*M/Kt); %rad/s
+omega_0 = sqrt(G*M/Kt); % rad/s
 u_0 = omega_0;
 
-dZr = 10; %m
+dZr = 10; % m
 
-%% Root locus for proportional loop
-% Transfer Function for proportional
+%% Question 3.4
+
+
+% Transfer Function for the proportional controller
 s = tf('s');
 
 g_prop = 1/(s^2*(s+300));
 
-% For K > 0 the root locus is
+%%
+% For K > 0, the root locus is
 figure(1)
 rlocus(g_prop);
 title('Root locus for K > 0, proportional loop')
 
-% For K < 0 we do rlocus for the symetric of the transfer function
+%%
+% As can be seen from the root locus, the proportional system always has
+% either two poles with positive real part or a pole with zero real part
+% but multiplicity 2. Thus, by the Hurwitz criterion, the system is
+% unstable.
+
+%% Question 3.5
+% For K < 0, we obtain the root locus of the symmetric of the transfer
+% function
 figure(2)
 rlocus(-g_prop);
 title('Root locus for K < 0, proportional loop')
 
 
-%% Root locus for derivative loop
-% Transfer Function for Proportional and Derivative
-z_test = [-20, -10, 10, 20];
+%% Question 3.7
+% Now we use the transfer function for a proportional-derivative
+% controller and plot the root locus for different values of z and constant
+% K > 0
+z_test = [-500, -20, -10, 10, 20, 500];
 
-% For K > 0 we do rlocus for several values of z
 for i = 1:length(z_test)
     figure(i+2)
     g_prop_der = (s+z_test(i))/(s^2*(s+300));
     rlocus(g_prop_der);
     title(strcat("Root locus ", "z = ", num2str(z_test(i))))
 end
-%% Quastion 3.8
-% Procurar o K que satisfaz a condição de haver um polo duplo
+
+%%
+% Here are 6 root loci for different values of z. For z < 0, the system is
+% unstable as there is always a pole with positive real part or a double
+% pole with zero real part. For small enough z > 0, the system is stable
+% except for a specific value of K that causes a double pole with zero real
+% part. For large z > 0, the system is again unstable.
+%% Question 3.8 - searching the value for K
+
+% Searches the value for K such that the closed-loop system has a double
+% pole at s = -2.01
+
 z_procura = 1;
 polo_procurado = -2.01;
 g_procura = (s+z_procura)/(s^2*(s+300));
@@ -73,15 +95,12 @@ end
 Kd_procura = k_alvo/(600*Kt*omega_0/M);
 Kp_procura = z_procura * Kd_procura;
 
-
-
-%% Running the complete simulation for the data from question 3.8
+%% Question 3.8 - running the complete simulation
 % For this set of data, we exemplify the difference in response of the
 % systems analysed.
 
 Kp = Kd_procura;
 Kd = Kp_procura;
-
 
 K_prop = 600*Kp*Kt*omega_0/M;
 K_prop_der = 600*Kd*Kt*omega_0/M;
@@ -111,26 +130,27 @@ title({strcat("Altitude ", "dZr = ", num2str(dZr), " m"),...
     strcat('z = ', num2str(z), '   K_p = ', num2str(Kp), '   K_d = ', num2str(Kd))})
 legend('prop','dif prop','dif prop with tf','Location','southeast');
 
+%%
 % Here we plotted 3 different graphs to compare different controllers.
-%
-% As indicated in the legend, the blue one is originated in a simple
-% proportional controller. We can see it doesnt stabilize in the reference
+% 
+% As indicated in the legend, the blue one originates from a simple
+% proportional controller. As seen, it does not stabilize in the reference
 % value.
 % 
-% The red graph is the step response of a proportional derivative
+% The red graph is the step response of a proportional-derivative
 % controller, the simulation for which is done step by step using the
-% script from lab class 2. (in simulink it is the "proportional
-% derivative") block. This is the answer to question 3.8
-%
+% script from lab class 2. In the simulink model it is the "proportional
+% derivative" block. This is the answer to question 3.8.
+% 
 % The final yellow graph is the step response of a proportional derivative
 % controller, the simulation for which is done with a single transfer
-% function (in simulink it is the "tf proportional derivative" block).
+% function. In the simulink model it is the "tf proportional derivative" block.
 % Note that this one differs from the second graph although theoretically
 % they should look alike.
-%% Effect of a varying z for contant K 3.9a
+%% Question 3.9 - effect of a varying z for constant K
 % We now plot the step response keeping K constant but varying z.
 K_39a = 1192;
-z_39a = [1];
+z_39a = [1, 10, 50, 100];
 
 legendcella = {};
 
@@ -143,9 +163,7 @@ for i = 1:length(z_39a)
     simout_tot = sim('total_lab3','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
     
     figure(5+length(z_test))
-    %plot(simout_tot.get('z_p').time, simout_tot.get('z_p').signals.values);
     plot(simout_tot.get('z_pd').time, simout_tot.get('z_pd').signals.values);
-    %plot(simout_tot.get('z_pdtf').time, simout_tot.get('z_pdtf').signals.values);
     hold on
     xlabel('time (s)')
     ylabel('z (m)')
@@ -153,12 +171,17 @@ for i = 1:length(z_39a)
     legendcella = [legendcella, cellstr(strcat('z = ', num2str(z)))];
 end
 legend(legendcella,'Location','southeast');
-% We can see 
 
-%% Effect of a varying K for contant z 3.9b
+%%
+% From the obtained plots we conclude that the response is faster as we
+% increased z, however, at the cost of also increasing its oscillations and
+% overshoot.
+
+%% Question 3.9 - effect of a varying K for constant z
+% We now plot the step response keeping z constant but varying K.
 finaltime = 10;
 
-K_39b = [150,500, 1192, 3000];
+K_39b = [150, 500, 1192, 3000];
 z_39b = 1;
 
 legendcellb = {};
@@ -172,9 +195,7 @@ for i = 1:length(K_39b)
     simout_tot = sim('total_lab3','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
     
     figure(6+length(z_test))
-    %plot(simout_tot.get('z_p').time, simout_tot.get('z_p').signals.values);
     plot(simout_tot.get('z_pd').time, simout_tot.get('z_pd').signals.values);
-    %plot(simout_tot.get('z_pdtf').time, simout_tot.get('z_pdtf').signals.values);
     hold on
     xlabel('time (s)')
     ylabel('z (m)')
@@ -183,4 +204,6 @@ for i = 1:length(K_39b)
 end
 legend(legendcellb,'Location','southeast');
 
-
+%%
+% From these plots we conclude that increasing K not only makes the response
+% faster but also reduces the overshoot.
