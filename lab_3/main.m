@@ -40,8 +40,7 @@ title('Root locus for K > 0, proportional loop')
 %%
 % As can be seen from the root locus, the proportional system always has
 % either two poles with positive real part or a pole with zero real part
-% but multiplicity 2. Thus, by the Hurwitz criterion, the system is
-% unstable.
+% but multiplicity 2. Thus,  the system is unstable.
 
 %% Question 3.5
 % For K < 0, we obtain the root locus of the symmetric of the transfer
