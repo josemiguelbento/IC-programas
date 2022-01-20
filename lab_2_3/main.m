@@ -1,6 +1,6 @@
 %% Simplified model for altitude control of a drone
 % The following report aims to give a better understanding of the steps
-% taken to linearize the system and model a proportional integral derivative
+% taken to linearize the system and model a proportional-derivative
 % controller.
 
 % Initializing the workspace
@@ -8,63 +8,48 @@ close all
 clear
 clc
 
-%% Setting the system parameters (Question 2.5)
+%% Lab 2
 
-% Parameters for running the simulation (simulation time and step for lab 2
+% Parameters for running the simulation
 finaltime = 2;
 StepSize = 0.01;
 
-% Problem given parameters
+%% Question 2.5
 % Across the whole program we start the changes from the equilibrium 1
 % second after the beginning of the simulation so as to facilitate
 % visualization.
-initial_step = 1; %s
-M = 1; %kg
-G = 9.8; %m/s^2
-Kt = 3.575e-5; %N/(rad/s)^2
-Z0 = 2; %m
+
+% Given parameters
+initial_step = 1; % s
+M = 1; % kg
+G = 9.8; % m/s^2
+Kt = 3.575e-5; % N/(rad/s)^2
+Z0 = 2; % m
 
 % Calulating the variables for equilibrium
-omega_0 = sqrt(G*M/Kt); %rad/s
+omega_0 = sqrt(G*M/Kt); % rad/s
 u_0 = omega_0;
 
 % Increasing the input by 100, 1000 and 5000 rpm and calculting the angular
 % velocity in rpm
 d_u_rpm = [100,1000,5000];
 u_rpm = u_0/(2*pi/60) + d_u_rpm;
-u = u_rpm.*(2*pi/60); %rad/s
+u = u_rpm.*(2*pi/60); % rad/s
 delta_u = u-u_0;
 
 
 % Intializing the figure counter
 fig_count = 1;
 
-%% Running the simulation with the inputs calculated above
+%% 
+% *Running the simulation with the inputs calculated above*
+
 % The for loop cycles through all the step sizes specified in the StepSizes
 % vector.
 for i = 1:length(u)
     simout_tot = sim('total_lab2','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
-    %% Plotting graphs to analyse the results obtained (Question 2.6)
-    %
-    %
-    % From observation of the altitude plots, it can be concluded that for
-    % lower angular velocity increments, the linear model is a good
-    % approximation, with increasingly bigger differences existing as the
-    % velocity increment also gets bigger. This makes sense because the
-    % linear model works around a certain equilibrium point (in this case,
-    % 5000 rpm) which means that for increments that change the value
-    % of the angular velocity more agressively (higher increments) the
-    % difference from the non-linear (real) model increases. 
-    %
-    % Specifically, the plots for the 100 rpm increment are very similar,
-    % whereas the plots refering to the 1000 rpm increment already show
-    % noticeable differences in altitude, velocity and acceleration values.
-    % The least accurate plots are the ones that show the system's behavior
-    % for the 5000 rpm increment, with even bigger differences between the
-    % linear and non-linear models.
     
-    % Plotting the angular velocity of the blades - it mimmics almost
-    % perfectely the input U
+    % Plotting the angular velocity of the blades - it mimics almost perfectely the input U
     figure(fig_count)
     fig_count = fig_count + 1;
     plot(simout_tot.get('omega_lin').time, simout_tot.get('omega_lin').signals.values/2/pi*60);
@@ -75,7 +60,7 @@ for i = 1:length(u)
     title(strcat("Angular velocity ", "du = ", num2str(d_u_rpm(i)), " rpm"))
     legend('lin','non lin','Location','southwest');
     
-    % Plotting the altitude of the drone.
+    % Plotting the altitude of the drone
     figure(fig_count)
     fig_count = fig_count + 1;
     plot(simout_tot.get('z_lin').time, simout_tot.get('z_lin').signals.values);
@@ -110,8 +95,27 @@ for i = 1:length(u)
     title(strcat("Acceleration ", "du = ", num2str(d_u_rpm(i)), " rpm"))
     legend('lin','non lin','Location','southwest');
     
-    %
 end
+
+    %% Question 2.6 - analyzing the results obtained
+    %
+    %
+    % From observation of the previously shown altitude plots, 
+    % it can be concluded that for lower angular velocity increments, the 
+    % linear model is a good approximation, with increasingly bigger 
+    % differences existing as the velocity increment also gets bigger. 
+    % This makes sense because the linear model works around a certain 
+    % equilibrium point (in this case, 5000 rpm) which means that for 
+    % increments that change the value of the angular velocity more 
+    % agressively (higher increments) the difference from the non-linear 
+    % (real) model increases. 
+    %
+    % Specifically, the plots for the 100 rpm increment are very similar,
+    % whereas the plots refering to the 1000 rpm increment already show
+    % noticeable differences in altitude, velocity and acceleration values.
+    % The least accurate plots are the ones that show the system's behavior
+    % for the 5000 rpm increment, with even bigger differences between the
+    % linear and non-linear models.
 
 %% Lab 3
 % Setting the system parameters
@@ -136,8 +140,7 @@ title('Root locus for K > 0, proportional loop')
 %%
 % As can be seen from the root locus, the proportional system always has
 % either two poles with positive real part or a pole with zero real part
-% but multiplicity 2. Thus, by the Hurwitz criterion, the system is
-% unstable.
+% but multiplicity 2. Thus, the system is unstable.
 
 %% Question 3.5
 % To get the root locus for K < 0, we plot the root locus of the symmetric
@@ -172,7 +175,7 @@ end
 % Searches the value for K such that the closed-loop system has a double
 % pole at s = -2.01
 
-z_procura = 1; %problem parameter
+z_procura = 1; % problem parameter
 polo_procurado = -2.01; 
 g_procura = (s+z_procura)/(s^2*(s+300));
 [r_procura,k_procura] = rlocus(g_procura);
@@ -205,26 +208,21 @@ Kp_procura = z_procura * Kd_procura;
 % For this set of data, we exemplify the difference in response of the
 % systems analysed.
 
-%Using the gains found in the previous section
+% Using the gains found in the previous section
 Kp = Kd_procura;
 Kd = Kp_procura;
 
 % Defining the parameters for the simulation.
-% parameter for the Proportional controller
-K_prop = 600*Kp*Kt*omega_0/M;
+K_prop = 600*Kp*Kt*omega_0/M; % proportional controller gain
+K_prop_der = 600*Kd*Kt*omega_0/M; % proportional-derivative controller gain
 
-%parameter for the Proportional Derivative controller
-K_prop_der = 600*Kd*Kt*omega_0/M;
-
-z = Kp/Kd; %the value for this is 1 since we found Kp and Kd to be the same
-
-
+z = Kp/Kd; % the value for this is 1 since we found Kp and Kd to be the same
 
 % Running the simulation for the previous data
 simout_tot = sim('total_lab3','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
 
 % Plotting the step response of the closed-loop linear system with the
-% proportional-derivative controller vs with a simple  proportional
+% proportional-derivative controller vs with a simple proportional
 % controller.
 figure(fig_count)
 fig_count = fig_count + 1;
