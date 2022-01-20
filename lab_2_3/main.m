@@ -2,7 +2,7 @@
 % The following report aims to give a better understanding of the steps
 % taken to linearize the system and model a proportional-derivative
 % controller.
-
+%% 
 % Initializing the workspace
 close all
 clear
@@ -97,30 +97,30 @@ for i = 1:length(u)
     
 end
 
-    %% Question 2.6 - analyzing the results obtained
-    %
-    %
-    % From observation of the previously shown altitude plots, 
-    % it can be concluded that for lower angular velocity increments, the 
-    % linear model is a good approximation, with increasingly bigger 
-    % differences existing as the velocity increment also gets bigger. 
-    % This makes sense because the linear model works around a certain 
-    % equilibrium point (in this case, 5000 rpm) which means that for 
-    % increments that change the value of the angular velocity more 
-    % agressively (higher increments) the difference from the non-linear 
-    % (real) model increases. 
-    %
-    % Specifically, the plots for the 100 rpm increment are very similar,
-    % whereas the plots refering to the 1000 rpm increment already show
-    % noticeable differences in altitude, velocity and acceleration values.
-    % The least accurate plots are the ones that show the system's behavior
-    % for the 5000 rpm increment, with even bigger differences between the
-    % linear and non-linear models.
+%% Question 2.6 - analyzing the results obtained
+%
+%
+% From observation of the previously shown altitude plots, 
+% it can be concluded that for lower angular velocity increments, the 
+% linear model is a good approximation, with increasingly bigger 
+% differences existing as the velocity increment also gets bigger. 
+% This makes sense because the linear model works around a certain 
+% equilibrium point (in this case, 5000 rpm) which means that for 
+% increments that change the value of the angular velocity more 
+% agressively (higher increments) the difference from the non-linear 
+% (real) model increases. 
+%
+% Specifically, the plots for the 100 rpm increment are very similar,
+% whereas the plots refering to the 1000 rpm increment already show
+% noticeable differences in altitude, velocity and acceleration values.
+% The least accurate plots are the ones that show the system's behavior
+% for the 5000 rpm increment, with even bigger differences between the
+% linear and non-linear models.
 
 %% Lab 3
 % Setting the system parameters
-dZr = 10; % m
-finaltime = 5;
+dZr = 1; % m
+finaltime = 7;
 
 %% Question 3.4
 
@@ -154,7 +154,7 @@ title('Root locus for K < 0, proportional loop')
 %% Question 3.7
 % Now we use the transfer function for a proportional-derivative
 % controller and plot the root locus for different values of z, for K > 0
-z_test = [-500, -20, -10, 10, 20, 500];
+z_test = [-500, -20, -10, 10, 20, 300, 500];
 
 for i = 1:length(z_test)
     figure(fig_count)
@@ -273,7 +273,12 @@ for i = 1:length(z_39a)
 end
 fig_count = fig_count + 1;
 legend(legendcella,'Location','Southeast');
-
+%%
+% From the obtained plots we conclude that a larger the value of z,
+% incrases the oscillations and overshoot. (this is only true up to a
+% certain value, as we will see in the next plots)
+% For z lower than 1, the time the system takes to settle is greater.
+%%
 % Special case z = 300
 z = 300;
 Kd = K_39a/(600*Kt*omega_0/M);
@@ -291,7 +296,37 @@ xlabel('time (s)')
 ylabel('z (m)')
 title(strcat("Altitude ", "dZr = ", num2str(dZr), " m    For constant K = 1192"))
 legend(strcat("z = ",num2str(z)));
+%%
+% For z close to 300, the system doesn't converge to the target (the 
+% amplitude of the oscilations remains approximately the same). This
+% confirms our expectation, drawn from the root-locus for z = 300 (in 
+% figure 20). In said root-locus, we find two poles whose real part is 0.
+% This, together with the absense of poles in the right complex semiplane
+% leads us to conclude that the system is marginally stable -> the step
+% response doesnt converge nor diverge.
+%%
+% Special case z = 150
+z = 150;
+Kd = K_39a/(600*Kt*omega_0/M);
+Kp = z * Kd;
+K_prop = 600*Kp*Kt*omega_0/M;
+K_prop_der = 600*Kd*Kt*omega_0/M;
+simout_tot = sim('total_lab3','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
 
+figure(fig_count)
+fig_count = fig_count + 1;
+
+plot(simout_tot.get('z_pd').time, simout_tot.get('z_pd').signals.values);
+hold on
+xlabel('time (s)')
+ylabel('z (m)')
+title(strcat("Altitude ", "dZr = ", num2str(dZr), " m    For constant K = 1192"))
+legend(strcat("z = ",num2str(z)));
+%%
+% Here we plot the step response for z = 150. Here we can see that for a
+% large enough value of z (up to z = 300), the time it takes for the system
+% to converge is greater the the time for z = 1, for example.
+%%
 % Special case z = 500
 z = 500;
 Kd = K_39a/(600*Kt*omega_0/M);
@@ -310,14 +345,12 @@ ylabel('z (m)')
 title(strcat("Altitude ", "dZr = ", num2str(dZr), " m    For constant K = 1192"))
 legend(strcat("z = ",num2str(z)));
 
-
 %%
-% From the obtained plots we conclude that a larger the value of z,
-% incrases the oscillations and overshoot. For z close to 300, the system
-% doesn't converge to the target (the amplitude of the oscilations remains
-% approximately the same). For z higher than this value, the system
-% diverges (for example z = 500).
-% For z lower than 1, the time the system takes to settle is greater.
+% For z higher than 300, the system diverges (for example z = 500). This
+% can be expalined by looking at the root locus for z=500 (figure 21). Here,
+% we can see that for k different than 0 there are two poles in the right
+% complex semiplane. We can thus conclude that the system is unstable, as
+% this step response proves.
 
 %% Question 3.9 - effect of a varying K for constant z
 % We now plot the step response keeping z constant but varying K.
