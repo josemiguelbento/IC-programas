@@ -150,14 +150,14 @@ legend('prop','dif prop','dif prop with tf','Location','southeast');
 %% Question 3.9 - effect of a varying z for constant K
 % We now plot the step response keeping K constant but varying z.
 K_39a = 1192;
-z_39a = [1, 10, 50, 100];
+z_39a = [1, 10, 50, 300];
 
 legendcella = {};
 
 for i = 1:length(z_39a)
     z = z_39a(i);
     Kd = K_39a/(600*Kt*omega_0/M);
-    Kp = z_39a * Kd;
+    Kp = z_39a(i) * Kd;
     K_prop = 600*Kp*Kt*omega_0/M;
     K_prop_der = 600*Kd*Kt*omega_0/M;
     simout_tot = sim('total_lab3','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
@@ -168,9 +168,9 @@ for i = 1:length(z_39a)
     xlabel('time (s)')
     ylabel('z (m)')
     title(strcat("Altitude ", "dZr = ", num2str(dZr), " m    For constant K = 1192"))
-    legendcella = [legendcella, cellstr(strcat('z = ', num2str(z)))];
 end
-legend(legendcella,'Location','southeast');
+legendcella = "z = " + string(cast(z_39a,'int32'));
+legend(legendcella,'Location','Southeast');
 
 %%
 % From the obtained plots we conclude that the response is faster as we
