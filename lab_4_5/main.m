@@ -42,7 +42,7 @@ for i = 1:length(z1_test)
     fig_count = fig_count+1;
     g_pid_ol_test = (s+z1_test(i))*(s+z2_test(i))/(s^3*(s+300));
     rlocus(g_pid_ol_test);
-    title(strcat("Root locus PID", " z_1 = ", num2str(z1_test(i)), "  z_2 = ", num2str(z2_test(i))))
+    title(strcat("Root locus PID", " z_1 = ", num2str(-z1_test(i)), "  z_2 = ", num2str(-z2_test(i))))
 end
 
 %%
@@ -53,11 +53,14 @@ end
 % example, for the zeros at z_1 = 1 and z_2 = 10, we see that the two poles
 % in question are on the right complex semiplane when K is lower than 275.
 % Therefore, the system is unstable for K lower than 275 (for these zeros).
+
 % For K = 275 (or somewhere close to it), the system is marginally stable,
 % since we have 2 poles with 0 real part and 2 poles on the left complex
-% semiplane. For K greater than 275, we get the 4 poles on the left complex
+% semiplane.
+
+% For K greater than 275, we get the 4 poles on the left complex
 % semiplane, thus concluding that the system is stable. This is illustrated
-% in the step response in the last section.
+% in the step response in section 4.4a .
 
 %% 
 % We will now analyse the root-locus for positive zeros (on the right
@@ -77,23 +80,31 @@ for i = 1:length(z1_test)
     fig_count = fig_count+1;
     g_pid_ol_test = (s+z1_test(i))*(s+z2_test(i))/(s^3*(s+300));
     rlocus(g_pid_ol_test);
-    title(strcat("Root locus PID", " z_1 = ", num2str(z1_test(i)), "  z_2 = ", num2str(z2_test(i))))
+    title(strcat("Root locus PID", " z_1 = ", num2str(-z1_test(i)), "  z_2 = ", num2str(-z2_test(i))))
 end
 
 %%
-% In all the previous plots we can see the movement of 4 poles. For K=0, 3
+% In both the previous plots we can see the movement of 4 poles. For K=0, 3
 % of them sit on the origin (Re = 0, Im = 0), and the other one is equal 
-% to -300. If we zoom in near the origin we can see that at first, 2 of the
-% poles that sit at the origin will go to the right complex semiplane. For
-% example, for the zeros at z_1 = 1 and z_2 = 10, we see that the two poles
-% in question are on the right complex semiplane when K is lower than 275.
-% Therefore, the system is unstable for K lower than 275 (for these zeros).
-% For K = 275 (or somewhere close to it), the system is marginally stable,
-% since we have 2 poles with 0 real part and 2 poles on the left complex
-% semiplane. For K greater than 275, we get the 4 poles on the left complex
-% semiplane, thus concluding that the system is stable. This is illustrated
-% in the step response in the last section.
+% to -300.
 
+% We will first look at the root locus for zeros at 1 and 2 (figure 4). In
+% this root locus, we can see that whatever the value of K, we always have
+% 2 poles on the right complex semiplane, which mean the system is
+% unstable.
+
+% For the second pair, we have zeros at -1 and 2. Again, we ccan see in the
+% root locus that for every value of K, we always have 1 pole on the right
+% complex semiplane, which means the system is unstable.
+
+% The step response for both these situations is illustrated in section
+% 4.4b.
+
+% From these analysis, we conclude that a system that has zeros on the 
+% left complex semiplane is only stable if K is greater than a certain
+% value (that depends on the values of z_1 and z_2). A system that has
+% zeros on the right complex semiplane is always unstable, regardless the
+% value of K.
 %% 4.3 z_1=1 z_2=10 finding K so poles are -1, -21 x 2, -224
 z1 = 1;
 z2 = 10;
@@ -134,7 +145,7 @@ plot(simout_tot.get('z_pid').time, simout_tot.get('z_pid').signals.values);
 xlabel('time (s)')
 ylabel('z (m)')
 title({strcat("Altitude ", "dZr = ", num2str(dZr), " m"),...
-    strcat('z_1 = ', num2str(z1), 'z_2 = ', num2str(z2), '   K_p = ',...
+    strcat('z_1 = ', -num2str(z1), 'z_2 = ', -num2str(z2), '   K_p = ',...
     num2str(Kp), '   K_i = ', num2str(Ki), '   K_d = ', num2str(Kd))})
 legend('PID','Location','southeast');
 
@@ -161,17 +172,17 @@ for i = 1:length(z1_44a)
     xlabel('time (s)')
     ylabel('z (m)')
     title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant K = 11740"))
-    legendcella = [legendcella, cellstr(strcat( "z_1 = ", num2str(z1_44a(i)), "  z_2 = ", num2str(z2_44a(i))))];
+    legendcella = [legendcella, cellstr(strcat( "z_1 = ", num2str(-z1_44a(i)), "  z_2 = ", num2str(-z2_44a(i))))];
 end
 fig_count = fig_count+1;
 legend(legendcella,'Location','southeast');
 
-%% Effect of a varying z1 and z2 for constant K 4.4a for positive zeros
+%% Effect of a varying z1 and z2 for constant K 4.4b for positive zeros
 finaltime = 8;
 
 K_44a = 11740;
-z1_44a = [-1 -1 1];
-z2_44a = [-2 2 2];
+z1_44a = [-1 1];
+z2_44a = [-2 -2];
 
 for i = 1:length(z1_44a)
     Kd = K_44a * M/600/Kt/omega_0;
@@ -187,11 +198,11 @@ for i = 1:length(z1_44a)
     xlabel('time (s)')
     ylabel('z (m)')
     title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant K = 11740"))
-    legend(strcat( "z_1 = ", num2str(z1_44a(i)), "  z_2 = ", num2str(z2_44a(i))))
+    legend(strcat( "z_1 = ", num2str(-z1_44a(i)), "  z_2 = ", num2str(-z2_44a(i))))
 end
 
 
-%% Effect of a varying K for contant z1 and z2 4.4b
+%% Effect of a varying K for contant z1 and z2 4.4c
 finaltime = 5;
 
 K_44b = [150, 275, 1000, 11740];
@@ -212,11 +223,11 @@ for i = 1:length(K_44b)
     hold on
     xlabel('time (s)')
     ylabel('z (m)')
-    title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant z_1 = 1, z_2 = 10"))
+    title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant z_1 = -1, z_2 = -10"))
     legendcellb = [legendcellb, cellstr(strcat('K = ', num2str(K_44b(i))))];
 end
 fig_count = fig_count+1;
-legend(legendcellb,'Location','southeast');
+legend(legendcellb,'Location','northwest');
 
 
 %% Lab 5 - Tracking error and disturbance rejection
@@ -360,7 +371,7 @@ for i = 1:length(K_56)
     hold on
     xlabel('time (s)')
     ylabel('z (m)')
-    title(strcat("PID with disturbance - Altitude ", "dZr = ", num2str(dZr), " m  z_1 = 1, z_2 = 10"))
+    title(strcat("PID with disturbance - Altitude ", "dZr = ", num2str(dZr), " m  z_1 = -1, z_2 = -10"))
     legendcellb = [legendcellb, cellstr(strcat('K = ', num2str(K_56(i))))];
 end
 
@@ -393,7 +404,7 @@ for i = 1:length(K_56)
     hold on
     xlabel('time (s)')
     ylabel('z (m)')
-    title(strcat("PID with disturbance - Altitude ", "dZr = ", num2str(dZr), " m  z_1 = 1, z_2 = 10"))
+    title(strcat("PID with disturbance - Altitude ", "dZr = ", num2str(dZr), " m  z_1 = -1, z_2 = -10"))
     legendcellb = [legendcellb, cellstr(strcat('K = ', num2str(K_56(i))))];
 end
 
