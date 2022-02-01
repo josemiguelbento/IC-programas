@@ -5,7 +5,7 @@ close all
 clear
 clc
 
-%% Setting the system parameters
+%% Lab 4 - PID control
 
 % Parameters for running the simulation
 finaltime = 5;
@@ -51,18 +51,19 @@ end
 % In all the previous plots we can see the movement of 4 poles. For K=0, 3
 % of them sit at the origin (Re = 0, Im = 0), and the other one is equal 
 % to -300. If we zoom in near the origin we can see that at first, 2 of the
-% poles that sit at the origin will go to the right complex semiplane. For
-% example, for the zeros at $z_1$ = 1 and $z_2$ = 10, we see that the two poles
-% in question are in the right complex semiplane when K is lower than 275.
-% Therefore, the system is unstable for K lower than 275 (for these zeros).
+% poles that sit at the origin will go to the right complex semiplane.
+% 
+% For example, for the zeros at $z_1$ = 1 and $z_2$ = 10, we see that the
+% two poles in question are in the right complex semiplane when K is lower 
+% than 275. Therefore, the system is unstable for K lower than 275. For 
+% K = 275 (or close to it), the system is marginally stable, since we have 
+% 2 poles with zero real part and 2 poles in the left complex semiplane.  
+% For K greater than 275, we get 4 poles in the left complex semiplane,  
+% thus concluding that the system is stable. This is illustrated in the 
+% step response in section 4.4.
 %
-% For K = 275 (or close to it), the system is marginally stable,
-% since we have 2 poles with 0 real part and 2 poles on the left complex
-% semiplane.
-%
-% For K greater than 275, we get 4 poles in the left complex
-% semiplane, thus concluding that the system is stable. This is illustrated
-% in the step response in section 4.4a.
+% The behaviour is similar for other pairs of zeros, only differing on the
+% value of K for which the system is marginally stable.
 
 %% 
 % We will now analyse the root-locus for at least one positive zero (on the right
@@ -90,26 +91,26 @@ end
 % In both the previous plots we can see the movement of 4 poles. For K=0, 3
 % of them sit at the origin (Re = 0, Im = 0), and the other one is equal 
 % to -300.
-
+%
 % We will first look at the root locus for zeros at 1 and 2 (figure 4). In
 % this root locus, we can see that whatever the value of K, we always have
 % 2 poles on the right complex semiplane, which means the system is
 % unstable.
-
+%
 % For the second pair, we have zeros at -1 and 2. Again, we can see in the
 % root locus that for every value of K, we always have 1 pole on the right
 % complex semiplane, so the system is again unstable.
-
+%
 % The step response for both these situations is illustrated in section
-% 4.4b.
-
-% From these analysis, we conclude that a system that has zeros in the 
+% 4.4.
+%
+% From this analysis, we conclude that a system that has zeros in the 
 % left complex semiplane is only stable if K is greater than a certain
 % value that depends on the values of z_1 and z_2. A system that has
 % zeros on the right complex semiplane is always unstable, regardless of the
 % value of K.
 %% Question 4.3 - finding K so poles are -1, -21 x 2, -224 for z_1=1, z_2=10
-% In this section, we plot the root locus for Z_1 = 1 and z_2 = 10, in
+% In this section, we plot the root locus for $z_1$ = 1 and $z_2$ = 10, in
 % other words, for the system with zeros in -1 and -10. We then search for
 % the gain K for which the poles are -1, -21 (double pole) and -224.
 
@@ -162,6 +163,7 @@ title({strcat("Altitude ", "dZr = ", num2str(dZr), " m"),...
     num2str(Kp), '   K_i = ', num2str(Ki), '   K_d = ', num2str(Kd))})
 legend('PID','Location','southeast');
 
+%%
 % In this figure, we have the representation of the step response for a
 % system with 2 negative zeros (-1 and -10), with a gain that is greater
 % than 275 (K = 11740). Here we confirm what was expected by looking at the
@@ -196,6 +198,7 @@ end
 fig_count = fig_count+1;
 legend(legendcella,'Location','southeast');
 
+%%
 % In this figure, we can see the step response for a constant K for
 % negative zeros. Here we can see that the smaller (the real part of) the zero is (the greater
 % it's absolute value, since it is negative), the smaller is the time
@@ -239,6 +242,7 @@ for i = 1:length(z1_44a)
     legend(strcat( "z_1 = ", num2str(z1_44a(i)), "  z_2 = ", num2str(z2_44a(i))))
 end
 
+%%
 % In these two figures, we present the step response for at least one zero
 % in the right complex semiplane. 
 
@@ -390,9 +394,20 @@ set(gca, 'YLimSpec', 'stretch');
 fig_count = fig_count+1;
 legend(legendcell54b,'Location','Northeast');
 
-%%
-
-% discuss the results 
+%% 
+% The first plot shows the effect $K_p$ has on the system response when
+% $K_d$ and $z$ are kept constant. The PD controller does not (anula?) the
+% disturbances, as the response will approach the theoretical value of 
+% 2 + 50/$K_p$. The output approaches 2 as we increase $K_p$,
+% like the plot shows.
+%
+% The second plot shows the effect $K_d$ has on the system response when
+% $K_p$ and $z$ are kept constant. The response converges to 2 + 50/$K_p$
+% like expected, but varies in the way it approaches this value. For $K_d$
+% lower than 89.04, there are oscillations around this value. The system is
+% underdamped. For $K_d$ equal to 89.04, the system is critically damped.
+% For $K_d$ larger than 89.04, the response slowly converges to this value
+% without oscillations. The system is overdamped.
 
 %% Question 5.6 - effect of disturbances with PID controller
 
@@ -463,5 +478,13 @@ fig_count = fig_count+1;
 legend(legendcellb,'Location','Northeast');
 
 %%
+% These two plots show the response of the PID controller to a constant
+% disturbance of 50 rpm and $z_1$ = 1, $z_2$ = 10. For K lower than 275,
+% the disturbance isn't attenuated and the response will diverge. For K =
+% 275, the response oscilllates at a constant amplitude around 2. For
+% values of K larger than 275, the response converges to 2 and the 
+% disturbance is attenuated. Unlike the PD controller, the steady-state 
+% output does not depend on $K_p$ and instead (if K is large enough as to 
+% converge) will always be 2.%%
 
 % discuss the results
