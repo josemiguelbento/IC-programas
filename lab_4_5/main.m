@@ -33,9 +33,6 @@ s = tf('s');
 % Because these values enter the gain expression as (s+z), for a positive
 % value here, we have a zero on the left complex semiplane.
 
-% These values are positive, but the zeros are negative since (s+z) is 
-% (s-(-z)), so these are in the left complex semiplane.
-
 z1_test = [0.5, 1, 2];
 z2_test = [1, 10, 20];
 
@@ -47,7 +44,7 @@ for i = 1:length(z1_test)
     fig_count = fig_count+1;
     g_pid_ol_test = (s+z1_test(i))*(s+z2_test(i))/(s^3*(s+300));
     rlocus(g_pid_ol_test);
-    title(strcat("Root locus PID", " z_1 = ", num2str(-z1_test(i)), "  z_2 = ", num2str(-z2_test(i))))
+    title(strcat("Root locus PID", " z_1 = ", num2str(z1_test(i)), "  z_2 = ", num2str(z2_test(i))))
 end
 
 %%
@@ -75,9 +72,6 @@ end
 % Because these values enter the gain expression as (s+z), for a negative
 % value here, we have a zero on the right complex semiplane.
 
-% These values are positive, but the zeros are negative since (s+z) is 
-% (s-(-z)), so these are in the left complex semiplane.
-
 z1_test = [-1, 1];
 z2_test = [-2, -2];
 
@@ -89,7 +83,7 @@ for i = 1:length(z1_test)
     fig_count = fig_count+1;
     g_pid_ol_test = (s+z1_test(i))*(s+z2_test(i))/(s^3*(s+300));
     rlocus(g_pid_ol_test);
-    title(strcat("Root locus PID", " z_1 = ", num2str(-z1_test(i)), "  z_2 = ", num2str(-z2_test(i))))
+    title(strcat("Root locus PID", " z_1 = ", num2str(z1_test(i)), "  z_2 = ", num2str(z2_test(i))))
 end
 
 %%
@@ -115,7 +109,9 @@ end
 % zeros on the right complex semiplane is always unstable, regardless of the
 % value of K.
 %% Question 4.3 - finding K so poles are -1, -21 x 2, -224 for z_1=1, z_2=10
-
+% In this section, we plot the root locus for Z_1 = 1 and z_2 = 10, in
+% other words, for the system with zeros in -1 and -10. We then search for
+% the gain K for which the poles are -1, -21 (double pole) and -224.
 
 z1 = 1;
 z2 = 10;
@@ -128,6 +124,9 @@ fig_count = fig_count+1;
 rlocus(g_pid_ol);
 [r_procura,k_procura] = rlocus(g_pid_ol);
 title('Root locus for PID z_1 = 1 z_2 = 10')
+
+% Search algorithm for the K to get the desired poles.
+
 for j = 1:length(k_procura)
     if(abs(r_procura(1,j) - (-1))< 0.01 && ...
             imag(r_procura(2,j)) < 0.0001 && ...
@@ -159,10 +158,16 @@ plot(simout_tot.get('z_pid').time, simout_tot.get('z_pid').signals.values);
 xlabel('time (s)')
 ylabel('z (m)')
 title({strcat("Altitude ", "dZr = ", num2str(dZr), " m"),...
-    strcat('z_1 = ', -num2str(z1), 'z_2 = ', -num2str(z2), '   K_p = ',...
+    strcat('z_1 = ', num2str(z1), 'z_2 = ', num2str(z2), '   K_p = ',...
     num2str(Kp), '   K_i = ', num2str(Ki), '   K_d = ', num2str(Kd))})
 legend('PID','Location','southeast');
 
+% In this figure, we have the representation of the step response for a
+% system with 2 negative zeros (-1 and -10), with a gain that is greater
+% than 275 (K = 11740). Here we confirm what was expected by looking at the
+% root-locus for this kind of parameters in section 4.2. As expected , for
+% both the zeros negative and a gain greater than 275 (for zeros at -1 and
+% -10), the system is stable, thus converging to the reference altitude.
 
 %% Question 4.4 - effect of a varying z1 and z2 with constant K and negative zeros
 finaltime = 8;
@@ -186,10 +191,29 @@ for i = 1:length(z1_44a)
     xlabel('time (s)')
     ylabel('z (m)')
     title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant K = 11740"))
-    legendcella = [legendcella, cellstr(strcat( "z_1 = ", num2str(-z1_44a(i)), "  z_2 = ", num2str(-z2_44a(i))))];
+    legendcella = [legendcella, cellstr(strcat( "z_1 = ", num2str(z1_44a(i)), "  z_2 = ", num2str(z2_44a(i))))];
 end
 fig_count = fig_count+1;
 legend(legendcella,'Location','southeast');
+
+% In this figure, we can see the step response for a constant K for
+% negative zeros. Here we can see that the smaller (the real part of) the zero is (the greater
+% it's absolute value, since it is negative), the smaller is the time
+% the system takes to converge.
+%
+% Looking at the root locus from section 4.2 we can understand why. A lower
+% value of zero "pulls" the poles to a more negative (real) value (for the
+% same K).
+%
+% For example, for the zeros at -0.5 and -1, with a gain of 23000, we get a
+% pole at -1.03. In contrast, for zeros at -2 and -20, with the same gain,
+% the pole in question would take the value of -34.7. This second, more
+% negative pole will result in a faster convergence of the system, thus
+% illustrating our point.
+%
+% Note: In this explanation we refer to negative and positive poles and zeros, as
+% well as poles and zeros greater than each other since all the values are
+% real numbers.
 
 %% Question 4.4 - effect of a varying z1 and z2 with constant K 4.4 and at least one positive zero
 finaltime = 8;
@@ -212,9 +236,11 @@ for i = 1:length(z1_44a)
     xlabel('time (s)')
     ylabel('z (m)')
     title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant K = 11740"))
-    legend(strcat( "z_1 = ", num2str(-z1_44a(i)), "  z_2 = ", num2str(-z2_44a(i))))
+    legend(strcat( "z_1 = ", num2str(z1_44a(i)), "  z_2 = ", num2str(z2_44a(i))))
 end
 
+% In these two figures, we present the step response for at least one zero
+% in the right complex semiplane. 
 
 %% Question 4.4 - effect of a varying K with constant z1 and z2
 finaltime = 5;
@@ -237,7 +263,7 @@ for i = 1:length(K_44b)
     hold on
     xlabel('time (s)')
     ylabel('z (m)')
-    title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant z_1 = -1, z_2 = -10"))
+    title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant z_1 = 1, z_2 = 10"))
     legendcellb = [legendcellb, cellstr(strcat('K = ', num2str(K_44b(i))))];
 end
 fig_count = fig_count+1;
@@ -275,7 +301,7 @@ for i = 1:length(Kp_54a)
     % Defining the parameters for the simulation.
     K_prop_der = 600*Kd*Kt*omega_0/M; % proportional-derivative controller gain
 
-    z = Kp/Kd; % the value for this is 1 since we found Kp and Kd to be the same
+    z = Kp/Kd;
 
     simout_tot = sim('total_lab5','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
     
@@ -334,8 +360,8 @@ for i = 1:length(Kd_54b)
     % Defining the parameters for the simulation.
     K_prop_der = 600*Kd*Kt*omega_0/M; % proportional-derivative controller gain
 
-    z = Kp/Kd; % the value for this is 1 since we found Kp and Kd to be the same
-
+    z = Kp/Kd;
+    
     simout_tot = sim('total_lab5','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
     
     figure(fig_count)
