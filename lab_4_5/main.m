@@ -1,35 +1,40 @@
 %% Simplified model for altitude control of a drone
-% The title kinda says it all
+
 %% Initializing workspace
 close all
 clear
 clc
 
 %% Setting the system parameters
+
 % Parameters for running the simulation
 finaltime = 5;
 StepSize = 0.01;
 
 % Problem parameters
-initial_step = 1; %s
-M = 1; %kg
-G = 9.8; %m/s^2
-Kt = 3.575e-5; %N/(rad/s)^2
-Z0 = 2; %m
+initial_step = 1; % s
+M = 1; % kg
+G = 9.8; % m/s^2
+Kt = 3.575e-5; % N/(rad/s)^2
+Z0 = 2; % m
 
 
-omega_0 = sqrt(G*M/Kt); %rad/s
+omega_0 = sqrt(G*M/Kt); % rad/s
 u_0 = omega_0;
 
-dZr = 1; %m
+dZr = 1; % m
 
 fig_count = 1;
-%% 4.2 Root locus for PID open loop different pairs of zeros
+%% Question 4.2 - root locus of PID open loop for different pairs of zeros
+
 % Transfer Function for proportional
 s = tf('s');
 
 % Because these values enter the gain expression as (s+z), for a positive
 % value here, we have a zero on the left complex semiplane.
+
+% These values are positive, but the zeros are negative since (s+z) is 
+% (s-(-z)), so these are in the left complex semiplane.
 
 z1_test = [0.5, 1, 2];
 z2_test = [1, 10, 20];
@@ -47,27 +52,31 @@ end
 
 %%
 % In all the previous plots we can see the movement of 4 poles. For K=0, 3
-% of them sit on the origin (Re = 0, Im = 0), and the other one is equal 
+% of them sit at the origin (Re = 0, Im = 0), and the other one is equal 
 % to -300. If we zoom in near the origin we can see that at first, 2 of the
 % poles that sit at the origin will go to the right complex semiplane. For
-% example, for the zeros at z_1 = 1 and z_2 = 10, we see that the two poles
-% in question are on the right complex semiplane when K is lower than 275.
+% example, for the zeros at $z_1$ = 1 and $z_2$ = 10, we see that the two poles
+% in question are in the right complex semiplane when K is lower than 275.
 % Therefore, the system is unstable for K lower than 275 (for these zeros).
-
-% For K = 275 (or somewhere close to it), the system is marginally stable,
+%
+% For K = 275 (or close to it), the system is marginally stable,
 % since we have 2 poles with 0 real part and 2 poles on the left complex
 % semiplane.
-
-% For K greater than 275, we get the 4 poles on the left complex
+%
+% For K greater than 275, we get 4 poles in the left complex
 % semiplane, thus concluding that the system is stable. This is illustrated
-% in the step response in section 4.4a .
+% in the step response in section 4.4a.
 
 %% 
-% We will now analyse the root-locus for positive zeros (on the right
+% We will now analyse the root-locus for at least one positive zero (on the right
 % complex semiplane).
+
 
 % Because these values enter the gain expression as (s+z), for a negative
 % value here, we have a zero on the right complex semiplane.
+
+% These values are positive, but the zeros are negative since (s+z) is 
+% (s-(-z)), so these are in the left complex semiplane.
 
 z1_test = [-1, 1];
 z2_test = [-2, -2];
@@ -85,30 +94,35 @@ end
 
 %%
 % In both the previous plots we can see the movement of 4 poles. For K=0, 3
-% of them sit on the origin (Re = 0, Im = 0), and the other one is equal 
+% of them sit at the origin (Re = 0, Im = 0), and the other one is equal 
 % to -300.
 
 % We will first look at the root locus for zeros at 1 and 2 (figure 4). In
 % this root locus, we can see that whatever the value of K, we always have
-% 2 poles on the right complex semiplane, which mean the system is
+% 2 poles on the right complex semiplane, which means the system is
 % unstable.
 
-% For the second pair, we have zeros at -1 and 2. Again, we ccan see in the
+% For the second pair, we have zeros at -1 and 2. Again, we can see in the
 % root locus that for every value of K, we always have 1 pole on the right
-% complex semiplane, which means the system is unstable.
+% complex semiplane, so the system is again unstable.
 
 % The step response for both these situations is illustrated in section
 % 4.4b.
 
-% From these analysis, we conclude that a system that has zeros on the 
+% From these analysis, we conclude that a system that has zeros in the 
 % left complex semiplane is only stable if K is greater than a certain
-% value (that depends on the values of z_1 and z_2). A system that has
-% zeros on the right complex semiplane is always unstable, regardless the
+% value that depends on the values of z_1 and z_2. A system that has
+% zeros on the right complex semiplane is always unstable, regardless of the
 % value of K.
-%% 4.3 z_1=1 z_2=10 finding K so poles are -1, -21 x 2, -224
+%% Question 4.3 - finding K so poles are -1, -21 x 2, -224 for z_1=1, z_2=10
+
+
 z1 = 1;
 z2 = 10;
+
+% open loop transfer function of PID
 g_pid_ol = (s+z1)*(s+z2)/(s^3*(s+300));
+
 figure(fig_count)
 fig_count = fig_count+1;
 rlocus(g_pid_ol);
@@ -125,7 +139,7 @@ for j = 1:length(k_procura)
     end
 end
 
-% Calculating coefficients from the K found
+% Computing coefficients from the K found
 kd_procura = k_alvo * M/600/Kt/omega_0;
 kp_procura = kd_procura*(z1+z2);
 ki_procura = kd_procura*z1*z2;
@@ -138,7 +152,7 @@ Ki = ki_procura;
 simout_tot = sim('total_lab4','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
 
 % Plotting the step response of the closed-loop linear system with the
-% pid controller.
+% PID controller.
 figure(fig_count)
 fig_count = fig_count+1;
 plot(simout_tot.get('z_pid').time, simout_tot.get('z_pid').signals.values);
@@ -150,12 +164,12 @@ title({strcat("Altitude ", "dZr = ", num2str(dZr), " m"),...
 legend('PID','Location','southeast');
 
 
-%% Effect of a varying z1 and z2 for constant K 4.4a for negative zeros
+%% Question 4.4 - effect of a varying z1 and z2 with constant K and negative zeros
 finaltime = 8;
 
 K_44a = 11740;
-z1_44a = [0.5, 1,2];
-z2_44a = [1, 10,20];
+z1_44a = [0.5, 1, 2];
+z2_44a = [1, 10, 20];
 
 legendcella = {};
 
@@ -177,7 +191,7 @@ end
 fig_count = fig_count+1;
 legend(legendcella,'Location','southeast');
 
-%% Effect of a varying z1 and z2 for constant K 4.4b for positive zeros
+%% Question 4.4 - effect of a varying z1 and z2 with constant K 4.4 and at least one positive zero
 finaltime = 8;
 
 K_44a = 11740;
@@ -202,7 +216,7 @@ for i = 1:length(z1_44a)
 end
 
 
-%% Effect of a varying K for contant z1 and z2 4.4c
+%% Question 4.4 - effect of a varying K with constant z1 and z2
 finaltime = 5;
 
 K_44b = [150, 275, 1000, 11740];
@@ -232,15 +246,16 @@ legend(legendcellb,'Location','northwest');
 
 %% Lab 5 - Tracking error and disturbance rejection
 
-%% Effect of disturbances with PD controller. 5.4
-%% Varying the Kp
+%% Question 5.4 - effect of disturbances with PD controller
+% First we study the effect of varying the proportional gain Kp.
+
 % Parameters for running the simulation
 finaltime = 5;
 StepSize = 0.01;
 
 % For this set of data, we exemplify the difference in response of the
-% systems analysed.
-dZr = 0; %m
+% analysed systems.
+dZr = 0; % m
 
 Kd_54a = 106.14;
 Kp_54a = [106.14 89.04 1060 5300 21200];
@@ -290,17 +305,19 @@ set(gca, 'YLimSpec', 'stretch');
 fig_count = fig_count+1;
 legend(legendcell54a,'Location','Southeast');
 
-%% Varying the Kd
+%%
+% Next we study the effect of varying the derivative gain Kd.
+
 % Parameters for running the simulation
 finaltime = 5;
 StepSize = 0.01;
 
 % For this set of data, we exemplify the difference in response of the
 % systems analysed.
-dZr = 0; %m
+dZr = 0; % m
 
 Kd_54b = [106.14 89.04 500 1500 20];
-Kp_54b = 106.14; %esperimentar 106
+Kp_54b = 106.14; % experimentar 106 ?
 
 z_pd = 1;
 w_d_rpm = 50;
@@ -347,10 +364,13 @@ set(gca, 'YLimSpec', 'stretch');
 fig_count = fig_count+1;
 legend(legendcell54b,'Location','Northeast');
 
+%%
 
-%% Effect of disturbances with PID controller. 5.6
+% discuss the results 
 
-dZr = 0; %m
+%% Question 5.6 - effect of disturbances with PID controller
+
+dZr = 0; % m
 K_56 = [150, 275, 1000];
 z1 = 1;
 z2 = 10;
@@ -383,7 +403,7 @@ legend(legendcellb,'Location','Northeast');
 
 %% Effect of disturbances with PID controller (going stable). 5.6
 
-dZr = 0; %m
+dZr = 0; % m
 K_56 = [10000, 11740];
 z1 = 1;
 z2 = 10;
@@ -415,3 +435,7 @@ ylim([Z0-0.00001 inf]);
 
 fig_count = fig_count+1;
 legend(legendcellb,'Location','Northeast');
+
+%%
+
+% discuss the results
