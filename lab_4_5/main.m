@@ -33,8 +33,8 @@ s = tf('s');
 % Because these values enter the gain expression as (s+z), for a positive
 % value here, we have a zero on the left complex semiplane.
 
-z1_test = [0.5, 1, 2];
-z2_test = [1, 10, 20];
+z1_test = [0.5, 1, 2,300];
+z2_test = [1, 10, 20,0.5];
 
 
 
