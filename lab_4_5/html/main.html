@@ -1,0 +1,933 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Simplified model for altitude control of a drone</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-02-03"><meta name="DC.source" content="main.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Simplified model for altitude control of a drone</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Initializing workspace</a></li><li><a href="#2">Lab 4 - PID control</a></li><li><a href="#3">Question 4.2 - root locus of PID open loop for different pairs of zeros</a></li><li><a href="#7">Question 4.3 - finding K so poles are -1, -21 x 2, -224 for z_1=1, z_2=10</a></li><li><a href="#8">Running the complete simulation for the data from question 4.3</a></li><li><a href="#10">Question 4.4 - effect of a varying z1 and z2 with constant K and negative zeros</a></li><li><a href="#12">Question 4.4 - effect of a varying z1 and z2 with constant K with at least one positive zero</a></li><li><a href="#14">Question 4.4 - effect of a varying K with constant z1 and z2</a></li><li><a href="#15">Lab 5 - Tracking error and disturbance rejection</a></li><li><a href="#16">Question 5.4 - effect of disturbances with PD controller</a></li><li><a href="#20">Question 5.6 - effect of disturbances with PID controller</a></li><li><a href="#21">Question 5.6 - Effect of disturbances with PID controller (fo greater values of K)</a></li></ul></div><h2 id="1">Initializing workspace</h2><pre class="codeinput">close <span class="string">all</span>
+clear
+clc
+</pre><h2 id="2">Lab 4 - PID control</h2><pre class="codeinput"><span class="comment">% Parameters for running the simulation</span>
+finaltime = 5;
+StepSize = 0.01;
+
+<span class="comment">% Problem parameters</span>
+initial_step = 1; <span class="comment">% s</span>
+M = 1; <span class="comment">% kg</span>
+G = 9.8; <span class="comment">% m/s^2</span>
+Kt = 3.575e-5; <span class="comment">% N/(rad/s)^2</span>
+Z0 = 2; <span class="comment">% m</span>
+
+
+omega_0 = sqrt(G*M/Kt); <span class="comment">% rad/s</span>
+u_0 = omega_0;
+
+dZr = 1; <span class="comment">% m</span>
+
+fig_count = 1;
+</pre><h2 id="3">Question 4.2 - root locus of PID open loop for different pairs of zeros</h2><pre class="codeinput"><span class="comment">% Transfer Function for proportional</span>
+s = tf(<span class="string">'s'</span>);
+
+<span class="comment">% Because these values enter the gain expression as (s+z), for a positive</span>
+<span class="comment">% value here, we have a zero on the left complex semiplane.</span>
+
+z1_test = [0.5, 1, 2,300];
+z2_test = [1, 10, 20,0.5];
+
+
+
+<span class="comment">% For K &gt; 0 the root locus is</span>
+<span class="keyword">for</span> i = 1:length(z1_test)
+    figure(fig_count)
+    fig_count = fig_count+1;
+    g_pid_ol_test = (s+z1_test(i))*(s+z2_test(i))/(s^3*(s+300));
+    rlocus(g_pid_ol_test);
+    title(strcat(<span class="string">"Root locus PID"</span>, <span class="string">" z_1 = "</span>, num2str(z1_test(i)), <span class="string">"  z_2 = "</span>, num2str(z2_test(i))))
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="main_01.png" alt=""> <img vspace="5" hspace="5" src="main_02.png" alt=""> <img vspace="5" hspace="5" src="main_03.png" alt=""> <img vspace="5" hspace="5" src="main_04.png" alt=""> <p>In all the previous plots we can see the movement of 4 poles. For K=0, 3 of them sit at the origin (Re = 0, Im = 0), and the other one is equal to -300. If we zoom in near the origin we can see that at first, 2 of the poles that sit at the origin will go to the right complex semiplane.</p><p>For example, for the zeros at <img src="main_eq09954028382799349400.png" alt="$z_1$" style="width:11px;height:9px;"> = 1 and <img src="main_eq16328206618166458137.png" alt="$z_2$" style="width:11px;height:9px;"> = 10, we see that the two poles in question are in the right complex semiplane when K is lower than 275. Therefore, the system is unstable for K lower than 275. For K = 275 (or close to it), the system is marginally stable, since we have 2 poles with zero real part and 2 poles in the left complex semiplane. For K greater than 275, we get 4 poles in the left complex semiplane, thus concluding that the system is stable. This is illustrated in the step response in section 4.4.</p><p>The behaviour is similar for other pairs of zeros, only differing on the value of K for which the system is marginally stable.</p><p>We will now analyse the root-locus for at least one positive zero (on the right complex semiplane).</p><p>Because these values enter the gain expression as (s+z), for a negative value here, we have a zero on the right complex semiplane.</p><pre class="codeinput">z1_test = [-1, 1];
+z2_test = [-2, -2];
+
+
+
+<span class="comment">% For K &gt; 0 the root locus is</span>
+<span class="keyword">for</span> i = 1:length(z1_test)
+    figure(fig_count)
+    fig_count = fig_count+1;
+    g_pid_ol_test = (s+z1_test(i))*(s+z2_test(i))/(s^3*(s+300));
+    rlocus(g_pid_ol_test);
+    title(strcat(<span class="string">"Root locus PID"</span>, <span class="string">" z_1 = "</span>, num2str(z1_test(i)), <span class="string">"  z_2 = "</span>, num2str(z2_test(i))))
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="main_05.png" alt=""> <img vspace="5" hspace="5" src="main_06.png" alt=""> <img vspace="5" hspace="5" src="main_07.png" alt=""> <p>In both the previous plots we can see the movement of 4 poles. For K=0, 3 of them sit at the origin (Re = 0, Im = 0), and the other one is equal to -300.</p><p>We will first look at the root locus for zeros at 1 and 2 (figure 4). In this root locus, we can see that whatever the value of K, we always have 2 poles on the right complex semiplane, which means the system is unstable.</p><p>For the second pair, we have zeros at -1 and 2. Again, we can see in the root locus that for every value of K, we always have 1 pole on the right complex semiplane, so the system is again unstable.</p><p>The step response for both these situations is illustrated in section 4.4.</p><p>From this analysis, we conclude that a system that has zeros in the left complex semiplane is only stable if K is greater than a certain value that depends on the values of z_1 and z_2. A system that has zeros on the right complex semiplane is always unstable, regardless of the value of K.</p><h2 id="7">Question 4.3 - finding K so poles are -1, -21 x 2, -224 for z_1=1, z_2=10</h2><p>In this section, we plot the root locus for <img src="main_eq09954028382799349400.png" alt="$z_1$" style="width:11px;height:9px;"> = 1 and <img src="main_eq16328206618166458137.png" alt="$z_2$" style="width:11px;height:9px;"> = 10, in other words, for the system with zeros in -1 and -10. We then search for the gain K for which the poles are -1, -21 (double pole) and -224.</p><pre class="codeinput">z1 = 1;
+z2 = 10;
+
+<span class="comment">% open loop transfer function of PID</span>
+g_pid_ol = (s+z1)*(s+z2)/(s^3*(s+300));
+
+figure(fig_count)
+fig_count = fig_count+1;
+rlocus(g_pid_ol);
+[r_procura,k_procura] = rlocus(g_pid_ol);
+title(<span class="string">'Root locus for PID z_1 = 1 z_2 = 10'</span>)
+
+<span class="comment">% Search algorithm for the K to get the desired poles.</span>
+
+<span class="keyword">for</span> j = 1:length(k_procura)
+    <span class="keyword">if</span>(abs(r_procura(1,j) - (-1))&lt; 0.01 &amp;&amp; <span class="keyword">...</span>
+            imag(r_procura(2,j)) &lt; 0.0001 &amp;&amp; <span class="keyword">...</span>
+            abs(r_procura(3,j) - r_procura(2,j)) &lt; 0.0001 &amp;&amp; <span class="keyword">...</span>
+            imag(r_procura(4,j)) &lt; 0.0001)
+        k_alvo = k_procura(j);
+        polo_alvo = r_procura(1,j);
+        <span class="keyword">break</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Computing coefficients from the K found</span>
+kd_procura = k_alvo * M/600/Kt/omega_0;
+kp_procura = kd_procura*(z1+z2);
+ki_procura = kd_procura*z1*z2;
+</pre><img vspace="5" hspace="5" src="main_08.png" alt=""> <img vspace="5" hspace="5" src="main_09.png" alt=""> <h2 id="8">Running the complete simulation for the data from question 4.3</h2><pre class="codeinput">Kd = kd_procura;
+Kp = kp_procura;
+Ki = ki_procura;
+
+simout_tot = sim(<span class="string">'total_lab4'</span>,<span class="string">'StopTime'</span>,num2str(finaltime),<span class="string">'FixedStep'</span>,num2str(StepSize));
+
+<span class="comment">% Plotting the step response of the closed-loop linear system with the</span>
+<span class="comment">% PID controller.</span>
+figure(fig_count)
+fig_count = fig_count+1;
+plot(simout_tot.get(<span class="string">'z_pid'</span>).time, simout_tot.get(<span class="string">'z_pid'</span>).signals.values);
+xlabel(<span class="string">'time (s)'</span>)
+ylabel(<span class="string">'z (m)'</span>)
+title({strcat(<span class="string">"Altitude "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m"</span>),<span class="keyword">...</span>
+    strcat(<span class="string">'z_1 = '</span>, num2str(z1), <span class="string">'z_2 = '</span>, num2str(z2), <span class="string">'   K_p = '</span>,<span class="keyword">...</span>
+    num2str(Kp), <span class="string">'   K_i = '</span>, num2str(Ki), <span class="string">'   K_d = '</span>, num2str(Kd))})
+legend(<span class="string">'PID'</span>,<span class="string">'Location'</span>,<span class="string">'southeast'</span>);
+</pre><img vspace="5" hspace="5" src="main_10.png" alt=""> <img vspace="5" hspace="5" src="main_11.png" alt=""> <p>In this figure, we have the representation of the step response for a system with 2 negative zeros (-1 and -10), with a gain that is greater than 275 (K = 11740). Here we confirm what was expected by looking at the root-locus for this kind of parameters in section 4.2. As expected , for both the zeros negative and a gain greater than 275 (for zeros at -1 and -10), the system is stable, thus converging to the reference altitude.</p><h2 id="10">Question 4.4 - effect of a varying z1 and z2 with constant K and negative zeros</h2><pre class="codeinput">finaltime = 8;
+
+K_44a = 11740;
+z1_44a = [0.5, 1, 2];
+z2_44a = [1, 10, 20];
+
+legendcella = {};
+
+<span class="keyword">for</span> i = 1:length(z1_44a)
+    Kd = K_44a * M/600/Kt/omega_0;
+    Kp = Kd*(z1_44a(i)+z2_44a(i));
+    Ki = Kd*z1_44a(i)*z2_44a(i);
+    simout_tot = sim(<span class="string">'total_lab4'</span>,<span class="string">'StopTime'</span>,num2str(finaltime),<span class="string">'FixedStep'</span>,num2str(StepSize));
+
+    figure(fig_count)
+
+    plot(simout_tot.get(<span class="string">'z_pid'</span>).time, simout_tot.get(<span class="string">'z_pid'</span>).signals.values);
+    hold <span class="string">on</span>
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'z (m)'</span>)
+    title(strcat(<span class="string">"Altitude "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m   For constant K = 11740"</span>))
+    legendcella = [legendcella, cellstr(strcat( <span class="string">"z_1 = "</span>, num2str(z1_44a(i)), <span class="string">"  z_2 = "</span>, num2str(z2_44a(i))))];
+<span class="keyword">end</span>
+fig_count = fig_count+1;
+legend(legendcella,<span class="string">'Location'</span>,<span class="string">'southeast'</span>);
+</pre><img vspace="5" hspace="5" src="main_12.png" alt=""> <p>In this figure, we can see the step response for a constant K for negative zeros. Here we can see that the smaller (the real part of) the zero is (the greater it's absolute value, since it is negative), the smaller is the time the system takes to converge.</p><p>Looking at the root locus from section 4.2 we can understand why. A lower value of zero "pulls" the poles to a more negative (real) value (for the same K).</p><h2 id="12">Question 4.4 - effect of a varying z1 and z2 with constant K with at least one positive zero</h2><pre class="codeinput">finaltime = 8;
+
+K_44a = 11740;
+z1_44a = [-1 1];
+z2_44a = [-2 -2];
+
+<span class="keyword">for</span> i = 1:length(z1_44a)
+    Kd = K_44a * M/600/Kt/omega_0;
+    Kp = Kd*(z1_44a(i)+z2_44a(i));
+    Ki = Kd*z1_44a(i)*z2_44a(i);
+    simout_tot = sim(<span class="string">'total_lab4'</span>,<span class="string">'StopTime'</span>,num2str(finaltime),<span class="string">'FixedStep'</span>,num2str(StepSize));
+
+    figure(fig_count)
+    fig_count = fig_count+1;
+
+    plot(simout_tot.get(<span class="string">'z_pid'</span>).time, simout_tot.get(<span class="string">'z_pid'</span>).signals.values);
+    hold <span class="string">on</span>
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'z (m)'</span>)
+    title(strcat(<span class="string">"Altitude "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m   For constant K = 11740"</span>))
+    legend(strcat( <span class="string">"z_1 = "</span>, num2str(z1_44a(i)), <span class="string">"  z_2 = "</span>, num2str(z2_44a(i))))
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="main_13.png" alt=""> <img vspace="5" hspace="5" src="main_14.png" alt=""> <p>In these two figures, we present the step response for at least one zero in the right complex semiplane. As we were expecting from the root-locus of Q4.2, in both cases the system diverges. We therefore conclude that the system can't be stable if there are any zeros on the right complex semiplane.</p><h2 id="14">Question 4.4 - effect of a varying K with constant z1 and z2</h2><pre class="codeinput">finaltime = 5;
+
+K_44b = [150, 275, 1000, 11740];
+z1_44b = z1;
+z2_44b = z2;
+
+legendcellb = {};
+
+<span class="keyword">for</span> i = 1:length(K_44b)
+    Kd = K_44b(i) * M/600/Kt/omega_0;
+    Kp = Kd*(z1_44b+z2_44b);
+    Ki = Kd*z1_44b*z2_44b;
+    simout_tot = sim(<span class="string">'total_lab4'</span>,<span class="string">'StopTime'</span>,num2str(finaltime),<span class="string">'FixedStep'</span>,num2str(StepSize));
+
+    figure(fig_count)
+
+    plot(simout_tot.get(<span class="string">'z_pid'</span>).time, simout_tot.get(<span class="string">'z_pid'</span>).signals.values);
+    hold <span class="string">on</span>
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'z (m)'</span>)
+    title(strcat(<span class="string">"Altitude "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m   For constant z_1 = 1, z_2 = 10"</span>))
+    legendcellb = [legendcellb, cellstr(strcat(<span class="string">'K = '</span>, num2str(K_44b(i))))];
+<span class="keyword">end</span>
+fig_count = fig_count+1;
+legend(legendcellb,<span class="string">'Location'</span>,<span class="string">'northwest'</span>);
+
+<span class="comment">% Here we used the zeros from Q4.3. ($z_1$ = 1 and $z_2$ = 10) and varied</span>
+<span class="comment">% the value of K. As we can see, for values greater than 275, they PID</span>
+<span class="comment">% can't stabilize the system. For K = 275, the system is marginally stable.</span>
+<span class="comment">% For values greater than 275, the PID controller is able to stabilize the</span>
+<span class="comment">% system on the reference value. We can also see that the greater the value</span>
+<span class="comment">% of K, the faster the system converges.</span>
+<span class="comment">%</span>
+<span class="comment">% All these conclusions were in according to the root-locus from Q4.2.</span>
+</pre><img vspace="5" hspace="5" src="main_15.png" alt=""> <h2 id="15">Lab 5 - Tracking error and disturbance rejection</h2><h2 id="16">Question 5.4 - effect of disturbances with PD controller</h2><p>First we study the effect of varying the proportional gain Kp. For this, we keep Kd constant, as well as the zero.</p><pre class="codeinput"><span class="comment">% Parameters for running the simulation</span>
+finaltime = 5;
+StepSize = 0.01;
+
+<span class="comment">% For this set of data, we exemplify the difference in response of the</span>
+<span class="comment">% analysed systems.</span>
+dZr = 0; <span class="comment">% m</span>
+
+Kd_54a = 106.14;
+Kp_54a = [89.04 106.14 500 1060 5300];
+
+z_pd = 1;
+w_d_rpm = 50; <span class="comment">% constant disturbance of 50rpm</span>
+w_d = w_d_rpm/60*2*pi;
+
+
+legendcell54a = {};
+
+<span class="keyword">for</span> i = 1:length(Kp_54a)
+
+    Kd = Kd_54a;
+    Kp = Kp_54a(i);
+
+    <span class="comment">% Defining the parameters for the simulation.</span>
+    K_prop_der = 600*Kd*Kt*omega_0/M; <span class="comment">% proportional-derivative controller gain</span>
+
+    z = Kp/Kd;
+
+    simout_tot = sim(<span class="string">'total_lab5'</span>,<span class="string">'StopTime'</span>,num2str(finaltime),<span class="string">'FixedStep'</span>,num2str(StepSize));
+
+    figure(fig_count)
+
+    plot(simout_tot.get(<span class="string">'z_pd'</span>).time, simout_tot.get(<span class="string">'z_pd'</span>).signals.values);
+    hold <span class="string">on</span>
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'z (m)'</span>)
+    title(strcat(<span class="string">"PD with disturbance - Altitude "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m  z = 1"</span>, <span class="string">" K_d = "</span>, num2str(Kd_54a)))
+    legendcell54a = [legendcell54a, cellstr(strcat(<span class="string">'K_p = '</span>, num2str(Kp_54a(i))))];
+<span class="keyword">end</span>
+
+<span class="keyword">for</span> i = 1:length(Kp_54a)
+    Kd = Kd_54a;
+    Kp = Kp_54a(i);
+    figure(fig_count)
+    hold <span class="string">on</span>
+    yline(Z0+dZr + w_d/Kp, <span class="string">'--'</span>);
+<span class="keyword">end</span>
+
+legendcell54a = [legendcell54a, cellstr(<span class="string">'Theo. value ss out'</span>)];
+
+
+set(gca, <span class="string">'YLimSpec'</span>, <span class="string">'stretch'</span>);
+
+fig_count = fig_count+1;
+lgd2= legend(legendcell54a,<span class="string">'Location'</span>,<span class="string">'Northwest'</span>);
+lgd2.FontSize = 6;
+</pre><img vspace="5" hspace="5" src="main_16.png" alt=""> <p>This plot shows the effect <img src="main_eq04301653670133881862.png" alt="$K_p$" style="width:18px;height:14px;"> has on the system response when <img src="main_eq14222518565320121796.png" alt="$K_d$" style="width:18px;height:13px;"> and <img src="main_eq17119888974628994297.png" alt="$z$" style="width:7px;height:7px;"> are kept constant. The PD controller does not mitigate completely the disturbances. As was predicted in the theoretical questions, the PD controller will have a steady-state output of 50/$K_p$. This means that for an initial altitude of z = 2 metres, the output of the system will approach 2 + 50/$K_p$ (the dotted lines). We therefore conclude that the greater the Kp, the closer we can get to the desired output (in this case 2). With the increase of Kp, however, also comes a decrease in the damping of the system.</p><p>Next we study the effect of varying the derivative gain Kd.</p><pre class="codeinput"><span class="comment">% Parameters for running the simulation</span>
+finaltime = 5;
+StepSize = 0.01;
+
+<span class="comment">% For this set of data, we exemplify the difference in response of the</span>
+<span class="comment">% systems analysed.</span>
+dZr = 0; <span class="comment">% m</span>
+
+Kd_54b = [20 89.04 106.14 500 1500];
+Kp_54b = 106.14;
+
+z_pd = 1;
+w_d_rpm = 50;
+w_d = w_d_rpm/60*2*pi;
+
+
+legendcell54b = {};
+
+<span class="keyword">for</span> i = 1:length(Kd_54b)
+
+    Kd = Kd_54b(i);
+    Kp = Kp_54b;
+
+    <span class="comment">% Defining the parameters for the simulation.</span>
+    K_prop_der = 600*Kd*Kt*omega_0/M; <span class="comment">% proportional-derivative controller gain</span>
+
+    z = Kp/Kd;
+
+    simout_tot = sim(<span class="string">'total_lab5'</span>,<span class="string">'StopTime'</span>,num2str(finaltime),<span class="string">'FixedStep'</span>,num2str(StepSize));
+
+    figure(fig_count)
+
+    plot(simout_tot.get(<span class="string">'z_pd'</span>).time, simout_tot.get(<span class="string">'z_pd'</span>).signals.values);
+    hold <span class="string">on</span>
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'z (m)'</span>)
+    title(strcat(<span class="string">"PD with disturbance - Altitude "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m  z = 1"</span>, <span class="string">" K_p = "</span>, num2str(Kp_54b)))
+    legendcell54b = [legendcell54b, cellstr(strcat(<span class="string">'K_d = '</span>, num2str(Kd_54b(i))))];
+<span class="keyword">end</span>
+
+<span class="keyword">for</span> i = 1:length(Kd_54b)
+    Kd = Kd_54b(i);
+    Kp = Kp_54b;
+    figure(fig_count)
+    hold <span class="string">on</span>
+    yline(Z0+dZr + w_d/Kp, <span class="string">'--'</span>);
+<span class="keyword">end</span>
+
+legendcell54b = [legendcell54b, cellstr(<span class="string">'Theo. value ss out'</span>)];
+
+
+set(gca, <span class="string">'YLimSpec'</span>, <span class="string">'stretch'</span>);
+
+fig_count = fig_count+1;
+lgd1 = legend(legendcell54b,<span class="string">'Location'</span>,<span class="string">'Northeast'</span>);
+lgd1.FontSize = 6;
+</pre><img vspace="5" hspace="5" src="main_17.png" alt=""> <p>This plot shows the effect <img src="main_eq14222518565320121796.png" alt="$K_d$" style="width:18px;height:13px;"> has on the system response when <img src="main_eq04301653670133881862.png" alt="$K_p$" style="width:18px;height:14px;"> and <img src="main_eq17119888974628994297.png" alt="$z$" style="width:7px;height:7px;"> are kept constant. The response converges to 2 + 50/$K_p$ like expected, but varies in the way it approaches this value. For <img src="main_eq14222518565320121796.png" alt="$K_d$" style="width:18px;height:13px;"> lower than 89.04, there are oscillations around this value. The system is underdamped. For <img src="main_eq14222518565320121796.png" alt="$K_d$" style="width:18px;height:13px;"> equal to 89.04, the system is critically damped. For <img src="main_eq14222518565320121796.png" alt="$K_d$" style="width:18px;height:13px;"> larger than 89.04, the response slowly converges to this value without oscillations. The system is overdamped.</p><h2 id="20">Question 5.6 - effect of disturbances with PID controller</h2><pre class="codeinput"><span class="comment">% Here our goal was to observe the effect of the disturbances. For that, we</span>
+<span class="comment">% set dZr to zero.</span>
+
+dZr = 0; <span class="comment">% m</span>
+K_56 = [150, 275, 1000];
+z1 = 1;
+z2 = 10;
+w_d_rpm = 50;
+w_d = w_d_rpm/60*2*pi;
+
+legendcellb = {};
+
+<span class="keyword">for</span> i = 1:length(K_56)
+    Kd = K_56(i) * M/600/Kt/omega_0;
+    Kp = Kd*(z1+z2);
+    Ki = Kd*z1*z2;
+    simout_tot = sim(<span class="string">'total_lab5'</span>,<span class="string">'StopTime'</span>,num2str(finaltime),<span class="string">'FixedStep'</span>,num2str(StepSize));
+
+    figure(fig_count)
+
+    plot(simout_tot.get(<span class="string">'z_pid'</span>).time, simout_tot.get(<span class="string">'z_pid'</span>).signals.values);
+    hold <span class="string">on</span>
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'z (m)'</span>)
+    title(strcat(<span class="string">"PID with disturbance - Altitude "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m  z_1 = -1, z_2 = -10"</span>))
+    legendcellb = [legendcellb, cellstr(strcat(<span class="string">'K = '</span>, num2str(K_56(i))))];
+<span class="keyword">end</span>
+
+yline(Z0+dZr, <span class="string">'--'</span>);
+legendcellb = [legendcellb, cellstr(<span class="string">'Theo. value ss out'</span>)];
+
+fig_count = fig_count+1;
+legend(legendcellb,<span class="string">'Location'</span>,<span class="string">'Southwest'</span>);
+</pre><img vspace="5" hspace="5" src="main_18.png" alt=""> <h2 id="21">Question 5.6 - Effect of disturbances with PID controller (fo greater values of K)</h2><pre class="codeinput">dZr = 0; <span class="comment">% m</span>
+K_56 = [10000, 11740];
+z1 = 1;
+z2 = 10;
+w_d_rpm = 50;
+w_d = w_d_rpm/60*2*pi;
+
+legendcellb = {};
+
+<span class="keyword">for</span> i = 1:length(K_56)
+    Kd = K_56(i) * M/600/Kt/omega_0;
+    Kp = Kd*(z1+z2);
+    Ki = Kd*z1*z2;
+    simout_tot = sim(<span class="string">'total_lab5'</span>,<span class="string">'StopTime'</span>,num2str(finaltime),<span class="string">'FixedStep'</span>,num2str(StepSize));
+
+    figure(fig_count)
+
+    plot(simout_tot.get(<span class="string">'z_pid'</span>).time, simout_tot.get(<span class="string">'z_pid'</span>).signals.values);
+    hold <span class="string">on</span>
+    xlabel(<span class="string">'time (s)'</span>)
+    ylabel(<span class="string">'z (m)'</span>)
+    title(strcat(<span class="string">"PID with disturbance - Altitude "</span>, <span class="string">"dZr = "</span>, num2str(dZr), <span class="string">" m  z_1 = -1, z_2 = -10"</span>))
+    legendcellb = [legendcellb, cellstr(strcat(<span class="string">'K = '</span>, num2str(K_56(i))))];
+<span class="keyword">end</span>
+
+yline(Z0+dZr, <span class="string">'--'</span>);
+legendcellb = [legendcellb, cellstr(<span class="string">'Theo. value ss out'</span>)];
+
+ylim([Z0-0.00001 inf]);
+
+fig_count = fig_count+1;
+legend(legendcellb,<span class="string">'Location'</span>,<span class="string">'Northeast'</span>);
+</pre><img vspace="5" hspace="5" src="main_19.png" alt=""> <p>These two plots show the response of the PID controller to a constant disturbance of 50 rpm and <img src="main_eq09954028382799349400.png" alt="$z_1$" style="width:11px;height:9px;"> = 1, <img src="main_eq16328206618166458137.png" alt="$z_2$" style="width:11px;height:9px;"> = 10. For K lower than 275, the disturbance isn't attenuated and the response will diverge (similarly to what happened in the normal step response of the system for these parameters in Q4.4). For K = 275, the response oscillates at a constant amplitude around 2. FOr values of K larger than 275, the response converges to 2 and the disturbance is attenuated. Unlike the PD controller, the steady-state output does not depend on <img src="main_eq04301653670133881862.png" alt="$K_p$" style="width:18px;height:14px;"> and instead (if K is large enough as to converge) will always be 2.%%</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Simplified model for altitude control of a drone
+
+%% Initializing workspace
+close all
+clear
+clc
+
+%% Lab 4 - PID control
+
+% Parameters for running the simulation
+finaltime = 5;
+StepSize = 0.01;
+
+% Problem parameters
+initial_step = 1; % s
+M = 1; % kg
+G = 9.8; % m/s^2
+Kt = 3.575e-5; % N/(rad/s)^2
+Z0 = 2; % m
+
+
+omega_0 = sqrt(G*M/Kt); % rad/s
+u_0 = omega_0;
+
+dZr = 1; % m
+
+fig_count = 1;
+%% Question 4.2 - root locus of PID open loop for different pairs of zeros
+
+% Transfer Function for proportional
+s = tf('s');
+
+% Because these values enter the gain expression as (s+z), for a positive
+% value here, we have a zero on the left complex semiplane.
+
+z1_test = [0.5, 1, 2,300];
+z2_test = [1, 10, 20,0.5];
+
+
+
+% For K > 0 the root locus is
+for i = 1:length(z1_test)
+    figure(fig_count)
+    fig_count = fig_count+1;
+    g_pid_ol_test = (s+z1_test(i))*(s+z2_test(i))/(s^3*(s+300));
+    rlocus(g_pid_ol_test);
+    title(strcat("Root locus PID", " z_1 = ", num2str(z1_test(i)), "  z_2 = ", num2str(z2_test(i))))
+end
+
+%%
+% In all the previous plots we can see the movement of 4 poles. For K=0, 3
+% of them sit at the origin (Re = 0, Im = 0), and the other one is equal 
+% to -300. If we zoom in near the origin we can see that at first, 2 of the
+% poles that sit at the origin will go to the right complex semiplane.
+% 
+% For example, for the zeros at $z_1$ = 1 and $z_2$ = 10, we see that the
+% two poles in question are in the right complex semiplane when K is lower 
+% than 275. Therefore, the system is unstable for K lower than 275. For 
+% K = 275 (or close to it), the system is marginally stable, since we have 
+% 2 poles with zero real part and 2 poles in the left complex semiplane.  
+% For K greater than 275, we get 4 poles in the left complex semiplane,  
+% thus concluding that the system is stable. This is illustrated in the 
+% step response in section 4.4.
+%
+% The behaviour is similar for other pairs of zeros, only differing on the
+% value of K for which the system is marginally stable.
+
+%% 
+% We will now analyse the root-locus for at least one positive zero (on the right
+% complex semiplane).
+%
+% Because these values enter the gain expression as (s+z), for a negative
+% value here, we have a zero on the right complex semiplane.
+
+z1_test = [-1, 1];
+z2_test = [-2, -2];
+
+
+
+% For K > 0 the root locus is
+for i = 1:length(z1_test)
+    figure(fig_count)
+    fig_count = fig_count+1;
+    g_pid_ol_test = (s+z1_test(i))*(s+z2_test(i))/(s^3*(s+300));
+    rlocus(g_pid_ol_test);
+    title(strcat("Root locus PID", " z_1 = ", num2str(z1_test(i)), "  z_2 = ", num2str(z2_test(i))))
+end
+
+%%
+% In both the previous plots we can see the movement of 4 poles. For K=0, 3
+% of them sit at the origin (Re = 0, Im = 0), and the other one is equal 
+% to -300.
+%
+% We will first look at the root locus for zeros at 1 and 2 (figure 4). In
+% this root locus, we can see that whatever the value of K, we always have
+% 2 poles on the right complex semiplane, which means the system is
+% unstable.
+%
+% For the second pair, we have zeros at -1 and 2. Again, we can see in the
+% root locus that for every value of K, we always have 1 pole on the right
+% complex semiplane, so the system is again unstable.
+%
+% The step response for both these situations is illustrated in section
+% 4.4.
+%
+% From this analysis, we conclude that a system that has zeros in the 
+% left complex semiplane is only stable if K is greater than a certain
+% value that depends on the values of z_1 and z_2. A system that has
+% zeros on the right complex semiplane is always unstable, regardless of the
+% value of K.
+
+%% Question 4.3 - finding K so poles are -1, -21 x 2, -224 for z_1=1, z_2=10
+% In this section, we plot the root locus for $z_1$ = 1 and $z_2$ = 10, in
+% other words, for the system with zeros in -1 and -10. We then search for
+% the gain K for which the poles are -1, -21 (double pole) and -224.
+
+z1 = 1;
+z2 = 10;
+
+% open loop transfer function of PID
+g_pid_ol = (s+z1)*(s+z2)/(s^3*(s+300));
+
+figure(fig_count)
+fig_count = fig_count+1;
+rlocus(g_pid_ol);
+[r_procura,k_procura] = rlocus(g_pid_ol);
+title('Root locus for PID z_1 = 1 z_2 = 10')
+
+% Search algorithm for the K to get the desired poles.
+
+for j = 1:length(k_procura)
+    if(abs(r_procura(1,j) - (-1))< 0.01 && ...
+            imag(r_procura(2,j)) < 0.0001 && ...
+            abs(r_procura(3,j) - r_procura(2,j)) < 0.0001 && ...
+            imag(r_procura(4,j)) < 0.0001)
+        k_alvo = k_procura(j);
+        polo_alvo = r_procura(1,j);
+        break
+    end
+end
+
+% Computing coefficients from the K found
+kd_procura = k_alvo * M/600/Kt/omega_0;
+kp_procura = kd_procura*(z1+z2);
+ki_procura = kd_procura*z1*z2;
+
+%% Running the complete simulation for the data from question 4.3
+Kd = kd_procura;
+Kp = kp_procura;
+Ki = ki_procura;
+
+simout_tot = sim('total_lab4','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
+
+% Plotting the step response of the closed-loop linear system with the
+% PID controller.
+figure(fig_count)
+fig_count = fig_count+1;
+plot(simout_tot.get('z_pid').time, simout_tot.get('z_pid').signals.values);
+xlabel('time (s)')
+ylabel('z (m)')
+title({strcat("Altitude ", "dZr = ", num2str(dZr), " m"),...
+    strcat('z_1 = ', num2str(z1), 'z_2 = ', num2str(z2), '   K_p = ',...
+    num2str(Kp), '   K_i = ', num2str(Ki), '   K_d = ', num2str(Kd))})
+legend('PID','Location','southeast');
+
+%%
+% In this figure, we have the representation of the step response for a
+% system with 2 negative zeros (-1 and -10), with a gain that is greater
+% than 275 (K = 11740). Here we confirm what was expected by looking at the
+% root-locus for this kind of parameters in section 4.2. As expected , for
+% both the zeros negative and a gain greater than 275 (for zeros at -1 and
+% -10), the system is stable, thus converging to the reference altitude.
+
+%% Question 4.4 - effect of a varying z1 and z2 with constant K and negative zeros
+finaltime = 8;
+
+K_44a = 11740;
+z1_44a = [0.5, 1, 2];
+z2_44a = [1, 10, 20];
+
+legendcella = {};
+
+for i = 1:length(z1_44a)
+    Kd = K_44a * M/600/Kt/omega_0;
+    Kp = Kd*(z1_44a(i)+z2_44a(i));
+    Ki = Kd*z1_44a(i)*z2_44a(i);
+    simout_tot = sim('total_lab4','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
+    
+    figure(fig_count)
+
+    plot(simout_tot.get('z_pid').time, simout_tot.get('z_pid').signals.values);
+    hold on
+    xlabel('time (s)')
+    ylabel('z (m)')
+    title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant K = 11740"))
+    legendcella = [legendcella, cellstr(strcat( "z_1 = ", num2str(z1_44a(i)), "  z_2 = ", num2str(z2_44a(i))))];
+end
+fig_count = fig_count+1;
+legend(legendcella,'Location','southeast');
+
+%%
+% In this figure, we can see the step response for a constant K for
+% negative zeros. Here we can see that the smaller (the real part of) the zero is (the greater
+% it's absolute value, since it is negative), the smaller is the time
+% the system takes to converge.
+%
+% Looking at the root locus from section 4.2 we can understand why. A lower
+% value of zero "pulls" the poles to a more negative (real) value (for the
+% same K).
+%
+%% Question 4.4 - effect of a varying z1 and z2 with constant K with at least one positive zero
+finaltime = 8;
+
+K_44a = 11740;
+z1_44a = [-1 1];
+z2_44a = [-2 -2];
+
+for i = 1:length(z1_44a)
+    Kd = K_44a * M/600/Kt/omega_0;
+    Kp = Kd*(z1_44a(i)+z2_44a(i));
+    Ki = Kd*z1_44a(i)*z2_44a(i);
+    simout_tot = sim('total_lab4','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
+    
+    figure(fig_count)
+    fig_count = fig_count+1;
+    
+    plot(simout_tot.get('z_pid').time, simout_tot.get('z_pid').signals.values);
+    hold on
+    xlabel('time (s)')
+    ylabel('z (m)')
+    title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant K = 11740"))
+    legend(strcat( "z_1 = ", num2str(z1_44a(i)), "  z_2 = ", num2str(z2_44a(i))))
+end
+
+%%
+% In these two figures, we present the step response for at least one zero
+% in the right complex semiplane.
+% As we were expecting from the root-locus of Q4.2, in both cases the
+% system diverges. We therefore conclude that the system can't be stable if
+% there are any zeros on the right complex semiplane.
+
+%% Question 4.4 - effect of a varying K with constant z1 and z2
+finaltime = 5;
+
+K_44b = [150, 275, 1000, 11740];
+z1_44b = z1;
+z2_44b = z2;
+
+legendcellb = {};
+
+for i = 1:length(K_44b)
+    Kd = K_44b(i) * M/600/Kt/omega_0;
+    Kp = Kd*(z1_44b+z2_44b);
+    Ki = Kd*z1_44b*z2_44b;
+    simout_tot = sim('total_lab4','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
+    
+    figure(fig_count)
+
+    plot(simout_tot.get('z_pid').time, simout_tot.get('z_pid').signals.values);
+    hold on
+    xlabel('time (s)')
+    ylabel('z (m)')
+    title(strcat("Altitude ", "dZr = ", num2str(dZr), " m   For constant z_1 = 1, z_2 = 10"))
+    legendcellb = [legendcellb, cellstr(strcat('K = ', num2str(K_44b(i))))];
+end
+fig_count = fig_count+1;
+legend(legendcellb,'Location','northwest');
+
+% Here we used the zeros from Q4.3. ($z_1$ = 1 and $z_2$ = 10) and varied 
+% the value of K. As we can see, for values greater than 275, they PID
+% can't stabilize the system. For K = 275, the system is marginally stable.
+% For values greater than 275, the PID controller is able to stabilize the
+% system on the reference value. We can also see that the greater the value
+% of K, the faster the system converges.
+% 
+% All these conclusions were in according to the root-locus from Q4.2.
+
+%% Lab 5 - Tracking error and disturbance rejection
+
+%% Question 5.4 - effect of disturbances with PD controller
+% First we study the effect of varying the proportional gain Kp. For this,
+% we keep Kd constant, as well as the zero.
+
+% Parameters for running the simulation
+finaltime = 5;
+StepSize = 0.01;
+
+% For this set of data, we exemplify the difference in response of the
+% analysed systems.
+dZr = 0; % m
+
+Kd_54a = 106.14;
+Kp_54a = [89.04 106.14 500 1060 5300];
+
+z_pd = 1;
+w_d_rpm = 50; % constant disturbance of 50rpm
+w_d = w_d_rpm/60*2*pi;
+
+
+legendcell54a = {};
+
+for i = 1:length(Kp_54a)
+    
+    Kd = Kd_54a;
+    Kp = Kp_54a(i);
+
+    % Defining the parameters for the simulation.
+    K_prop_der = 600*Kd*Kt*omega_0/M; % proportional-derivative controller gain
+
+    z = Kp/Kd;
+
+    simout_tot = sim('total_lab5','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
+    
+    figure(fig_count)
+
+    plot(simout_tot.get('z_pd').time, simout_tot.get('z_pd').signals.values);
+    hold on
+    xlabel('time (s)')
+    ylabel('z (m)')
+    title(strcat("PD with disturbance - Altitude ", "dZr = ", num2str(dZr), " m  z = 1", " K_d = ", num2str(Kd_54a)))
+    legendcell54a = [legendcell54a, cellstr(strcat('K_p = ', num2str(Kp_54a(i))))];
+end
+
+for i = 1:length(Kp_54a)
+    Kd = Kd_54a;
+    Kp = Kp_54a(i);
+    figure(fig_count)
+    hold on
+    yline(Z0+dZr + w_d/Kp, 'REPLACE_WITH_DASH_DASH');
+end
+
+legendcell54a = [legendcell54a, cellstr('Theo. value ss out')];
+
+
+set(gca, 'YLimSpec', 'stretch');
+
+fig_count = fig_count+1;
+lgd2= legend(legendcell54a,'Location','Northwest');
+lgd2.FontSize = 6;
+
+%% 
+% This plot shows the effect $K_p$ has on the system response when
+% $K_d$ and $z$ are kept constant. The PD controller does not mitigate completely the
+% disturbances. As was predicted in the theoretical questions, the PD
+% controller will have a steady-state output of 50/$K_p$. This means that
+% for an initial altitude of z = 2 metres, the output of the system will
+% approach 2 + 50/$K_p$ (the dotted lines).
+% We therefore conclude that the greater the Kp, the closer we can get to
+% the desired output (in this case 2).
+% With the increase of Kp, however, also comes a decrease in the damping
+% of the system.
+%%
+% Next we study the effect of varying the derivative gain Kd.
+
+% Parameters for running the simulation
+finaltime = 5;
+StepSize = 0.01;
+
+% For this set of data, we exemplify the difference in response of the
+% systems analysed.
+dZr = 0; % m
+
+Kd_54b = [20 89.04 106.14 500 1500];
+Kp_54b = 106.14;
+
+z_pd = 1;
+w_d_rpm = 50;
+w_d = w_d_rpm/60*2*pi;
+
+
+legendcell54b = {};
+
+for i = 1:length(Kd_54b)
+    
+    Kd = Kd_54b(i);
+    Kp = Kp_54b;
+
+    % Defining the parameters for the simulation.
+    K_prop_der = 600*Kd*Kt*omega_0/M; % proportional-derivative controller gain
+
+    z = Kp/Kd;
+    
+    simout_tot = sim('total_lab5','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
+    
+    figure(fig_count)
+
+    plot(simout_tot.get('z_pd').time, simout_tot.get('z_pd').signals.values);
+    hold on
+    xlabel('time (s)')
+    ylabel('z (m)')
+    title(strcat("PD with disturbance - Altitude ", "dZr = ", num2str(dZr), " m  z = 1", " K_p = ", num2str(Kp_54b)))
+    legendcell54b = [legendcell54b, cellstr(strcat('K_d = ', num2str(Kd_54b(i))))];
+end
+
+for i = 1:length(Kd_54b)
+    Kd = Kd_54b(i);
+    Kp = Kp_54b;
+    figure(fig_count)
+    hold on
+    yline(Z0+dZr + w_d/Kp, 'REPLACE_WITH_DASH_DASH');
+end
+
+legendcell54b = [legendcell54b, cellstr('Theo. value ss out')];
+
+
+set(gca, 'YLimSpec', 'stretch');
+
+fig_count = fig_count+1;
+lgd1 = legend(legendcell54b,'Location','Northeast');
+lgd1.FontSize = 6;
+
+%% 
+% This plot shows the effect $K_d$ has on the system response when
+% $K_p$ and $z$ are kept constant. The response converges to 2 + 50/$K_p$
+% like expected, but varies in the way it approaches this value. For $K_d$
+% lower than 89.04, there are oscillations around this value. The system is
+% underdamped. For $K_d$ equal to 89.04, the system is critically damped.
+% For $K_d$ larger than 89.04, the response slowly converges to this value
+% without oscillations. The system is overdamped.
+
+%% Question 5.6 - effect of disturbances with PID controller
+
+% Here our goal was to observe the effect of the disturbances. For that, we
+% set dZr to zero.
+
+dZr = 0; % m
+K_56 = [150, 275, 1000];
+z1 = 1;
+z2 = 10;
+w_d_rpm = 50;
+w_d = w_d_rpm/60*2*pi;
+
+legendcellb = {};
+
+for i = 1:length(K_56)
+    Kd = K_56(i) * M/600/Kt/omega_0;
+    Kp = Kd*(z1+z2);
+    Ki = Kd*z1*z2;
+    simout_tot = sim('total_lab5','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
+    
+    figure(fig_count)
+
+    plot(simout_tot.get('z_pid').time, simout_tot.get('z_pid').signals.values);
+    hold on
+    xlabel('time (s)')
+    ylabel('z (m)')
+    title(strcat("PID with disturbance - Altitude ", "dZr = ", num2str(dZr), " m  z_1 = -1, z_2 = -10"))
+    legendcellb = [legendcellb, cellstr(strcat('K = ', num2str(K_56(i))))];
+end
+
+yline(Z0+dZr, 'REPLACE_WITH_DASH_DASH');
+legendcellb = [legendcellb, cellstr('Theo. value ss out')];
+    
+fig_count = fig_count+1;
+legend(legendcellb,'Location','Southwest');
+
+%%  Question 5.6 - Effect of disturbances with PID controller (fo greater values of K)
+
+dZr = 0; % m
+K_56 = [10000, 11740];
+z1 = 1;
+z2 = 10;
+w_d_rpm = 50;
+w_d = w_d_rpm/60*2*pi;
+
+legendcellb = {};
+
+for i = 1:length(K_56)
+    Kd = K_56(i) * M/600/Kt/omega_0;
+    Kp = Kd*(z1+z2);
+    Ki = Kd*z1*z2;
+    simout_tot = sim('total_lab5','StopTime',num2str(finaltime),'FixedStep',num2str(StepSize));
+    
+    figure(fig_count)
+
+    plot(simout_tot.get('z_pid').time, simout_tot.get('z_pid').signals.values);
+    hold on
+    xlabel('time (s)')
+    ylabel('z (m)')
+    title(strcat("PID with disturbance - Altitude ", "dZr = ", num2str(dZr), " m  z_1 = -1, z_2 = -10"))
+    legendcellb = [legendcellb, cellstr(strcat('K = ', num2str(K_56(i))))];
+end
+
+yline(Z0+dZr, 'REPLACE_WITH_DASH_DASH');
+legendcellb = [legendcellb, cellstr('Theo. value ss out')];
+    
+ylim([Z0-0.00001 inf]);
+
+fig_count = fig_count+1;
+legend(legendcellb,'Location','Northeast');
+
+%%
+% These two plots show the response of the PID controller to a constant
+% disturbance of 50 rpm and $z_1$ = 1, $z_2$ = 10. For K lower than 275,
+% the disturbance isn't attenuated and the response will diverge 
+% (similarly to what happened in the normal step response of the system 
+% for these parameters in Q4.4). 
+% For K = 275, the response oscillates at a constant amplitude around 2.
+% FOr values of K larger than 275, the response converges to 2 and the 
+% disturbance is attenuated. Unlike the PD controller, the steady-state 
+% output does not depend on $K_p$ and instead (if K is large enough as to 
+% converge) will always be 2.%%
+
+##### SOURCE END #####
+--></body></html>

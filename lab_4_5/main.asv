@@ -335,8 +335,7 @@ legendcell54a = [legendcell54a, cellstr('Theo. value ss out')];
 set(gca, 'YLimSpec', 'stretch');
 
 fig_count = fig_count+1;
-lgd2= legend(legendcell54a,'Location','Northwest');
-lgd2.FontSize = 6;
+legend(legendcell54a,'Location','Southeast');
 
 %% 
 % This plot shows the effect $K_p$ has on the system response when
@@ -400,14 +399,14 @@ for i = 1:length(Kd_54b)
     yline(Z0+dZr + w_d/Kp, '--');
 end
 
-legendcell54b = [legendcell54b, cellstr('Theo. value ss out')];
+legendcell54b = [legendcell54b, cellstr('Theoretical value for steady state output')];
 
 
 set(gca, 'YLimSpec', 'stretch');
 
 fig_count = fig_count+1;
-lgd1 = legend(legendcell54b,'Location','Northeast');
-lgd1.FontSize = 6;
+legend(legendcell54b,'Location','Northeast');
+
 
 %% 
 % This plot shows the effect $K_d$ has on the system response when
@@ -419,9 +418,6 @@ lgd1.FontSize = 6;
 % without oscillations. The system is overdamped.
 
 %% Question 5.6 - effect of disturbances with PID controller
-
-% Here our goal was to observe the effect of the disturbances. For that, we
-% set dZr to zero.
 
 dZr = 0; % m
 K_56 = [150, 275, 1000];
@@ -449,12 +445,12 @@ for i = 1:length(K_56)
 end
 
 yline(Z0+dZr, '--');
-legendcellb = [legendcellb, cellstr('Theo. value ss out')];
+legendcellb = [legendcellb, cellstr('Theoretical value for steady state output')];
     
 fig_count = fig_count+1;
-legend(legendcellb,'Location','Southwest');
+legend(legendcellb,'Location','Northeast');
 
-%%  Question 5.6 - Effect of disturbances with PID controller (fo greater values of K)
+%% Effect of disturbances with PID controller (going stable). 5.6
 
 dZr = 0; % m
 K_56 = [10000, 11740];
@@ -482,7 +478,7 @@ for i = 1:length(K_56)
 end
 
 yline(Z0+dZr, '--');
-legendcellb = [legendcellb, cellstr('Theo. value ss out')];
+legendcellb = [legendcellb, cellstr('Theoretical value for steady state output')];
     
 ylim([Z0-0.00001 inf]);
 
