@@ -68,9 +68,10 @@ end
 %% 
 % We will now analyse the root-locus for at least one positive zero (on the right
 % complex semiplane).
-%
+
 % Because these values enter the gain expression as (s+z), for a negative
-% value here, we have a zero on the right complex semiplane.
+% value here, we have a zero on the right complex semiplane, just like
+% before
 
 z1_test = [-1, 1];
 z2_test = [-2, -2];
@@ -105,7 +106,7 @@ end
 %
 % From this analysis, we conclude that a system that has zeros in the 
 % left complex semiplane is only stable if K is greater than a certain
-% value that depends on the values of z_1 and z_2. A system that has
+% value that depends on the values of $z_1$ and $z_2$. A system that has
 % zeros on the right complex semiplane is always unstable, regardless of the
 % value of K.
 
@@ -201,7 +202,7 @@ legend(legendcella,'Location','southeast');
 %%
 % In this figure, we can see the step response for a constant K for
 % negative zeros. Here we can see that the smaller (the real part of) the zero is (the greater
-% it's absolute value, since it is negative), the smaller is the time
+% its absolute value, since it is negative), the smaller is the time
 % the system takes to converge.
 %
 % Looking at the root locus from section 4.2 we can understand why. A lower
@@ -266,9 +267,10 @@ end
 fig_count = fig_count+1;
 legend(legendcellb,'Location','northwest');
 
+%%
 % Here we used the zeros from Q4.3. ($z_1$ = 1 and $z_2$ = 10) and varied 
-% the value of K. As we can see, for values greater than 275, they PID
-% can't stabilize the system. For K = 275, the system is marginally stable.
+% the value of K. As we can see, for values greater than 275, the PID
+% cannot stabilize the system. For K = 275, the system is marginally stable.
 % For values greater than 275, the PID controller is able to stabilize the
 % system on the reference value. We can also see that the greater the value
 % of K, the faster the system converges.
@@ -340,11 +342,11 @@ lgd2.FontSize = 6;
 
 %% 
 % This plot shows the effect $K_p$ has on the system response when
-% $K_d$ and $z$ are kept constant. The PD controller does not mitigate completely the
+% $K_d$ and $z$ are kept constant. The PD controller does not completely mitigate the
 % disturbances. As was predicted in the theoretical questions, the PD
-% controller will have a steady-state output of 50/$K_p$. This means that
+% controller will have a steady-state output of 50/K_p. This means that
 % for an initial altitude of z = 2 metres, the output of the system will
-% approach 2 + 50/$K_p$ (the dotted lines).
+% approach 2 + 50/K_p (the dotted lines).
 % We therefore conclude that the greater the Kp, the closer we can get to
 % the desired output (in this case 2).
 % With the increase of Kp, however, also comes a decrease in the damping
@@ -411,7 +413,7 @@ lgd1.FontSize = 6;
 
 %% 
 % This plot shows the effect $K_d$ has on the system response when
-% $K_p$ and $z$ are kept constant. The response converges to 2 + 50/$K_p$
+% $K_p$ and $z$ are kept constant. The response converges to 2 + 50/K_p
 % like expected, but varies in the way it approaches this value. For $K_d$
 % lower than 89.04, there are oscillations around this value. The system is
 % underdamped. For $K_d$ equal to 89.04, the system is critically damped.
@@ -454,7 +456,7 @@ legendcellb = [legendcellb, cellstr('Theo. value ss out')];
 fig_count = fig_count+1;
 legend(legendcellb,'Location','Southwest');
 
-%%  Question 5.6 - Effect of disturbances with PID controller (fo greater values of K)
+%%  Question 5.6 - Effect of disturbances with PID controller (for greater values of K)
 
 dZr = 0; % m
 K_56 = [10000, 11740];
@@ -496,7 +498,7 @@ legend(legendcellb,'Location','Northeast');
 % (similarly to what happened in the normal step response of the system 
 % for these parameters in Q4.4). 
 % For K = 275, the response oscillates at a constant amplitude around 2.
-% FOr values of K larger than 275, the response converges to 2 and the 
+% For values of K larger than 275, the response converges to 2 and the 
 % disturbance is attenuated. Unlike the PD controller, the steady-state 
 % output does not depend on $K_p$ and instead (if K is large enough as to 
-% converge) will always be 2.%%
+% converge) will always be 2.
