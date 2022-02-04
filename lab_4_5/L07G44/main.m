@@ -6,6 +6,15 @@ clear
 clc
 
 %% Lab 4 - PID control
+% For this section (lab 4), we are studying a system that is in equilibrium
+% until 1 second after the beginning of the simulation. This means that
+% during that first second, the altitude remains constant at 2 meters, the
+% vertical velocity is 0, as well as the acceleration. The parameters
+% required to achieve this state are calculated here (for example rotor
+% speed).
+% 
+% After the first second in equilibrium, we set the reference to 3 meters
+% (or dZr to 1 meter, since Z0 is 2).
 
 % Parameters for running the simulation
 finaltime = 5;
@@ -72,18 +81,18 @@ end
 % Because these values enter the gain expression as (s+z), for a negative
 % value here, we have a zero on the right complex semiplane
 
-z1_test = [-1, 1];
-z2_test = [-2, -2];
+z1_test_42b = [-1, 1];
+z2_test_42b = [-2, -2];
 
 
 
 % For K > 0 the root locus is
-for i = 1:length(z1_test)
+for i = 1:length(z1_test_42b)
     figure(fig_count)
     fig_count = fig_count+1;
-    g_pid_ol_test = (s+z1_test(i))*(s+z2_test(i))/(s^3*(s+300));
+    g_pid_ol_test = (s+z1_test_42b(i))*(s+z2_test_42b(i))/(s^3*(s+300));
     rlocus(g_pid_ol_test);
-    title(strcat("Root locus PID", " z_1 = ", num2str(z1_test(i)), "  z_2 = ", num2str(z2_test(i))))
+    title(strcat("Root locus PID", " z_1 = ", num2str(z1_test_42b(i)), "  z_2 = ", num2str(z2_test_42b(i))))
 end
 
 %%
@@ -277,7 +286,17 @@ legend(legendcellb,'Location','northwest');
 % All these conclusions were in according to the root-locus from Q4.2.
 
 %% Lab 5 - Tracking error and disturbance rejection
-
+% For this section (lab 5), we are studying a system that is initially in equilibrium
+% This means that
+% before starting the simulation, the altitude remains constant at 2 meters. The
+% vertical velocity is 0, as well as the acceleration. The parameters
+% required to achieve this state were calculated in lab 4.
+% In this section, we set the value of the disturbances to the constant
+% value of 50 rpm, as defined in the lab assignment.
+% 
+% Here, since we only want to study the effect of the disturbances of the
+% system and not its response to a reference altitude, we set this
+% parameter to 0 (dZr = 0).
 %% Question 5.4 - effect of disturbances with PD controller
 % First we study the effect of varying the proportional gain Kp. For this,
 % we keep Kd constant, as well as the zero.
@@ -350,6 +369,12 @@ lgd2.FontSize = 6;
 % the desired output (in this case 2).
 % With the increase of Kp, however, also comes a decrease in the damping
 % of the system.
+% 
+% We can also note that for a PD system like this, the steady-state
+% tracking error is 0. This is expected, since the PD closed-loop in Q5.1
+% is of type 2. This can be explained by the open-loop transfer function
+% having 2 poles at the origin.
+
 %%
 % Next we study the effect of varying the derivative gain Kd.
 
@@ -501,3 +526,8 @@ legend(legendcellb,'Location','Northeast');
 % disturbance is attenuated. Unlike the PD controller, the steady-state 
 % output does not depend on $K_p$ and instead (if K is large enough as to 
 % converge) will always be 2.
+% 
+% We can also note that for a PID system like this, the steady-state
+% tracking error is 0. This is expected, since the PID closed-loop in Q5.2
+% is of type 3. This can be explained by the open-loop transfer function
+% having 3 poles at the origin.
